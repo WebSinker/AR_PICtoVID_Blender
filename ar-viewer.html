@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <title>AR Experience Viewer</title>
+  <title>Custom Image AR - Picture to Video</title>
   
-  <!-- AR.js with Image Tracking (NFT) -->
-  <script src="https://cdn.jsdelivr.net/gh/aframevr/aframe@1c2407b26c61958baa93967b5412487cd94b290b/dist/aframe-master.min.js"></script>
+  <!-- AR.js for Image Tracking -->
+  <script src="https://cdn.jsdelivr.net/npm/aframe@1.3.0/dist/aframe-master.min.js"></script>
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
   
   <style>
@@ -16,38 +16,17 @@
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
     }
 
     body {
       margin: 0;
       overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-      position: fixed;
-      width: 100%;
-      height: 100%;
-      touch-action: none;
     }
 
-    /* Ensure AR canvas is visible */
-    .a-canvas {
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      width: 100% !important;
-      height: 100% !important;
-      z-index: 0 !important;
-    }
-
-    a-scene {
-      height: 100%;
-      width: 100%;
-    }
-
-    /* Loading Screen - Mobile Optimized */
     .arjs-loader {
-      height: 100%;
-      width: 100%;
+      height: 100vh;
+      width: 100vw;
       position: fixed;
       top: 0;
       left: 0;
@@ -57,35 +36,29 @@
       justify-content: center;
       align-items: center;
       flex-direction: column;
+      color: white;
+      text-align: center;
       padding: 20px;
     }
 
-    .arjs-loader div {
-      text-align: center;
-      color: white;
-      padding: 15px;
-      max-width: 90%;
-    }
-
     .arjs-loader h2 {
-      font-size: 1.5em;
-      margin-bottom: 15px;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      font-size: 2em;
+      margin-bottom: 20px;
     }
 
     .arjs-loader p {
-      font-size: 1em;
-      margin: 8px 0;
-      opacity: 0.95;
-      line-height: 1.5;
+      font-size: 1.1em;
+      margin: 10px 0;
+      opacity: 0.9;
+      line-height: 1.6;
     }
 
     .spinner {
-      border: 4px solid rgba(255,255,255,0.3);
-      border-top: 4px solid white;
+      border: 5px solid rgba(255,255,255,0.3);
+      border-top: 5px solid white;
       border-radius: 50%;
-      width: 50px;
-      height: 50px;
+      width: 60px;
+      height: 60px;
       animation: spin 1s linear infinite;
       margin: 20px auto;
     }
@@ -95,57 +68,83 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* Mobile Instructions - Large and Clear */
+    .mode-selector {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.95);
+      padding: 15px 25px;
+      border-radius: 25px;
+      z-index: 1000;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      display: flex;
+      gap: 15px;
+    }
+
+    .mode-btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .mode-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .mode-btn.active {
+      background: #4caf50;
+      box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.3);
+    }
+
     .instructions {
       position: fixed;
-      top: 15px;
+      top: 90px;
       left: 50%;
       transform: translateX(-50%);
       background: rgba(76, 175, 80, 0.95);
       color: white;
-      padding: 18px 25px;
+      padding: 20px 30px;
       border-radius: 30px;
-      z-index: 1000;
+      z-index: 999;
       text-align: center;
       font-weight: bold;
       font-size: 16px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-      max-width: 85%;
+      max-width: 90%;
       animation: pulse 2s infinite;
-      line-height: 1.4;
     }
 
     @keyframes pulse {
       0%, 100% { transform: translateX(-50%) scale(1); }
-      50% { transform: translateX(-50%) scale(1.03); }
+      50% { transform: translateX(-50%) scale(1.05); }
     }
 
-    .instructions.hidden {
-      display: none;
-    }
-
-    /* Found Message - Bigger for Mobile */
-    .found-message {
+    .marker-found {
       position: fixed;
-      bottom: 100px;
+      bottom: 30px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(76, 175, 80, 0.98);
+      background: rgba(76, 175, 80, 0.95);
       color: white;
-      padding: 25px 35px;
+      padding: 25px 40px;
       border-radius: 25px;
-      z-index: 999;
-      font-size: 20px;
+      z-index: 998;
+      font-size: 22px;
       font-weight: bold;
       display: none;
       box-shadow: 0 6px 25px rgba(0,0,0,0.4);
-      animation: slideUp 0.5s ease;
-      max-width: 85%;
-      text-align: center;
     }
 
-    .found-message.show {
+    .marker-found.show {
       display: block;
+      animation: slideUp 0.5s ease;
     }
 
     @keyframes slideUp {
@@ -159,105 +158,31 @@
       }
     }
 
-    /* Error Message - Mobile Friendly */
-    .error-message {
+    .info-panel {
       position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(244, 67, 54, 0.98);
-      color: white;
-      padding: 30px 25px;
-      border-radius: 20px;
-      z-index: 10000;
-      text-align: center;
-      display: none;
-      max-width: 85%;
-      box-shadow: 0 6px 30px rgba(0,0,0,0.5);
-    }
-
-    .error-message.show {
-      display: block;
-    }
-
-    .error-message h3 {
-      font-size: 1.3em;
-      margin-bottom: 15px;
-    }
-
-    .error-message p {
-      font-size: 1em;
-      line-height: 1.5;
-      margin-bottom: 20px;
-    }
-
-    .error-message button {
-      background: white;
-      color: #f44336;
-      border: none;
-      padding: 15px 30px;
-      border-radius: 25px;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 16px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-      touch-action: manipulation;
-    }
-
-    /* Help Button - Touch Optimized */
-    .help-button {
-      position: fixed;
-      bottom: 25px;
-      right: 25px;
-      background: rgba(33, 150, 243, 0.95);
-      color: white;
-      border: none;
-      padding: 18px;
-      border-radius: 50%;
-      font-size: 26px;
-      cursor: pointer;
-      z-index: 998;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-      touch-action: manipulation;
-      width: 60px;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .help-button:active {
-      transform: scale(0.95);
-    }
-
-    /* Help Panel - Mobile Optimized */
-    .help-panel {
-      position: fixed;
-      bottom: 95px;
-      right: 20px;
-      background: rgba(255, 255, 255, 0.98);
+      bottom: 30px;
+      right: 30px;
+      background: rgba(255, 255, 255, 0.95);
       padding: 20px;
       border-radius: 20px;
       z-index: 997;
-      max-width: calc(100% - 40px);
-      width: 300px;
+      max-width: 300px;
       box-shadow: 0 6px 30px rgba(0,0,0,0.4);
       display: none;
     }
 
-    .help-panel.show {
+    .info-panel.show {
       display: block;
       animation: fadeIn 0.3s ease;
     }
 
-    .help-panel h3 {
+    .info-panel h3 {
       color: #667eea;
-      margin-top: 0;
       margin-bottom: 15px;
       font-size: 1.2em;
     }
 
-    .help-panel ul {
+    .info-panel ul {
       margin: 0;
       padding-left: 20px;
       line-height: 1.8;
@@ -265,560 +190,447 @@
       font-size: 14px;
     }
 
-    .help-panel li {
-      margin-bottom: 8px;
-    }
-
-    @keyframes fadeIn {
-      from { 
-        opacity: 0; 
-        transform: translateY(10px) scale(0.95); 
-      }
-      to { 
-        opacity: 1; 
-        transform: translateY(0) scale(1); 
-      }
-    }
-
-    /* Status Indicator */
-    .status-bar {
+    .help-button {
       position: fixed;
-      top: 80px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      padding: 10px 20px;
-      border-radius: 20px;
-      z-index: 996;
-      font-size: 13px;
-      display: none;
-      max-width: 85%;
-      text-align: center;
-    }
-
-    .status-bar.show {
-      display: block;
-    }
-
-    /* Camera Controls Overlay */
-    .camera-controls {
-      position: fixed;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 15px;
-      z-index: 995;
-      display: none;
-    }
-
-    .camera-controls.show {
-      display: flex;
-    }
-
-    .control-btn {
-      background: rgba(255, 255, 255, 0.9);
-      border: none;
-      padding: 15px 25px;
-      border-radius: 25px;
-      font-size: 14px;
-      font-weight: bold;
-      color: #667eea;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-      touch-action: manipulation;
-    }
-
-    .control-btn:active {
-      transform: scale(0.95);
-    }
-
-    /* Marker Detection Indicator */
-    .detection-ring {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 250px;
-      height: 250px;
-      border: 3px dashed rgba(76, 175, 80, 0.6);
-      border-radius: 20px;
-      z-index: 994;
-      display: none;
-      animation: scan 2s linear infinite;
-      pointer-events: none;
-    }
-
-    .detection-ring.show {
-      display: block;
-    }
-
-    @keyframes scan {
-      0%, 100% { 
-        border-color: rgba(76, 175, 80, 0.6);
-        transform: translate(-50%, -50%) scale(1);
-      }
-      50% { 
-        border-color: rgba(76, 175, 80, 1);
-        transform: translate(-50%, -50%) scale(1.05);
-      }
-    }
-
-    /* Print Marker Button */
-    .print-marker-btn {
-      position: fixed;
-      bottom: 25px;
-      left: 25px;
-      background: rgba(156, 39, 176, 0.95);
+      bottom: 110px;
+      right: 30px;
+      background: rgba(33, 150, 243, 0.95);
       color: white;
       border: none;
-      padding: 15px 20px;
-      border-radius: 25px;
-      font-size: 14px;
-      font-weight: bold;
+      padding: 18px;
+      border-radius: 50%;
+      font-size: 26px;
       cursor: pointer;
-      z-index: 998;
+      z-index: 996;
       box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-      touch-action: manipulation;
+      width: 65px;
+      height: 65px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    .print-marker-btn:active {
-      transform: scale(0.95);
-    }
-
-    /* Tap to Start Overlay */
-    .tap-to-start {
+    .video-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(102, 126, 234, 0.95);
-      z-index: 10001;
+      z-index: 1001;
+      background: rgba(0, 0, 0, 0.85);
       display: flex;
       justify-content: center;
       align-items: center;
+      flex-direction: column;
       color: white;
+      padding: 20px;
+    }
+
+    .video-overlay.hidden {
+      display: none;
+    }
+
+    .video-overlay button {
+      background: #4caf50;
+      color: white;
+      border: none;
+      padding: 20px 40px;
+      font-size: 20px;
+      border-radius: 30px;
       cursor: pointer;
-      animation: fadeIn 0.3s ease;
+      margin-top: 20px;
+      font-weight: bold;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
 
-    .tap-to-start h3 {
-      font-size: 1.5em;
-      margin: 0;
+    .video-overlay h2 {
+      margin-bottom: 10px;
+      font-size: 2em;
     }
 
-    .tap-to-start p {
-      font-size: 1em;
-      margin: 0;
+    .video-overlay p {
+      font-size: 1.1em;
+      opacity: 0.9;
+      text-align: center;
+      max-width: 85%;
+      line-height: 1.6;
     }
 
-    /* Responsive adjustments */
-    @media (max-width: 400px) {
-      .instructions {
-        font-size: 14px;
-        padding: 15px 20px;
-      }
-
-      .found-message {
-        font-size: 18px;
-        padding: 20px 25px;
-      }
-
-      .help-button {
-        width: 55px;
-        height: 55px;
-        font-size: 24px;
-      }
-
-      .print-marker-btn {
-        font-size: 12px;
-        padding: 12px 16px;
-      }
-    }
-
-    /* Landscape mode adjustments */
-    @media (orientation: landscape) and (max-height: 500px) {
-      .instructions {
-        top: 10px;
-        font-size: 13px;
-        padding: 12px 20px;
-      }
-
-      .help-button, .print-marker-btn {
-        bottom: 15px;
-      }
-
-      .help-panel {
-        bottom: 75px;
-      }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
     }
   </style>
 </head>
 <body>
   <!-- Loading Screen -->
   <div class="arjs-loader">
-    <div>
-      <h2>🎬 Loading AR Experience</h2>
-      <div class="spinner"></div>
-      <p>📸 Please allow camera access when prompted</p>
-      <p>🔍 Preparing image tracker...</p>
-      <p style="font-size: 0.85em; opacity: 0.8; margin-top: 15px;">💡 Tip: Ensure good lighting for best results</p>
-    </div>
+    <h2>🎬 Loading AR Experience...</h2>
+    <div class="spinner"></div>
+    <p>Initializing camera and AR tracking...</p>
+    <p style="font-size: 0.9em; margin-top: 20px;">Please allow camera access when prompted</p>
+  </div>
+
+  <!-- Video Enable Overlay -->
+  <div class="video-overlay" id="videoOverlay">
+    <h2>📱 Start AR Experience</h2>
+    <p>Tap the button below to enable camera, video, and audio.<br><br>For best results, use good lighting and hold your device steady.</p>
+    <button onclick="enableExperience()">🚀 Start AR</button>
+  </div>
+
+  <!-- Mode Selector -->
+  <div class="mode-selector" id="modeSelector" style="display: none;">
+    <button class="mode-btn active" onclick="switchMode('hiro')">🎯 HIRO Marker</button>
+    <button class="mode-btn" onclick="switchMode('custom')">📸 Custom Image</button>
   </div>
 
   <!-- Instructions -->
-  <div class="instructions" id="instructions">
-    📸 Point camera at HIRO marker!<br>
-    <small style="font-size: 0.85em; opacity: 0.9;">Hold steady & keep marker visible</small>
+  <div class="instructions" id="instructions" style="display: none;">
+    <span id="instructionText">📸 Point camera at marker</span>
   </div>
 
-  <!-- Status Bar -->
-  <div class="status-bar" id="statusBar">
-    🔍 Searching for marker...
-  </div>
-
-  <!-- Detection Ring -->
-  <div class="detection-ring" id="detectionRing"></div>
-
-  <!-- Found Message -->
-  <div class="found-message" id="foundMessage">
-    ✨ Marker Found!<br>
-    <small style="font-size: 0.8em;">Enjoy your AR video! 🎬</small>
-  </div>
-
-  <!-- Error Message -->
-  <div class="error-message" id="errorMessage">
-    <h3>⚠️ Camera Access Required</h3>
-    <p>This AR experience needs camera access to work. Please allow camera permissions in your browser settings.</p>
-    <button onclick="location.reload()">🔄 Try Again</button>
+  <!-- Marker Found Message -->
+  <div class="marker-found" id="markerFound">
+    ✅ Image Detected! Playing video...
   </div>
 
   <!-- Help Button -->
-  <button class="help-button" onclick="toggleHelp()" aria-label="Help">❓</button>
-  
-  <!-- Print Marker Button -->
-  <button class="print-marker-btn" onclick="showMarkerInfo()">📄 Get Marker</button>
+  <button class="help-button" id="helpBtn" style="display: none;" onclick="toggleInfo()">?</button>
 
-  <!-- Tap to Start Overlay (for mobile autoplay) -->
-  <div class="tap-to-start" id="tapToStart" style="display: none;">
-    <div style="text-align: center;">
-      <h2 style="font-size: 2em; margin-bottom: 20px;">👆</h2>
-      <h3 style="margin-bottom: 15px;">Tap to Enable Video</h3>
-      <p style="opacity: 0.9;">Required for video playback</p>
-    </div>
-  </div>
-
-  <!-- Help Panel -->
-  <div class="help-panel" id="helpPanel">
-    <h3>💡 Tips for Success</h3>
-    <ul>
-      <li><strong>Lighting:</strong> Use good lighting, avoid shadows</li>
-      <li><strong>Distance:</strong> Hold marker 30-50cm from camera</li>
-      <li><strong>Stability:</strong> Keep marker flat and steady</li>
-      <li><strong>Visibility:</strong> Show entire marker on screen</li>
-      <li><strong>Glare:</strong> Avoid reflections on marker</li>
+  <!-- Info Panel -->
+  <div class="info-panel" id="infoPanel">
+    <h3>📋 How to Use</h3>
+    <ul id="infoList">
+      <li>Print or display the target image on another screen</li>
+      <li>Hold your device steady</li>
+      <li>Point camera at the image</li>
+      <li>Keep the entire image visible</li>
+      <li>Video will play automatically!</li>
     </ul>
   </div>
 
-  <!-- AR Scene -->
+  <!-- AR Scene for HIRO -->
   <a-scene
-    vr-mode-ui="enabled: false;"
-    renderer="logarithmicDepthBuffer: true; precision: medium; antialias: true; alpha: true;"
+    id="hiroScene"
     embedded
-    arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3; sourceWidth:1280; sourceHeight:960; displayWidth: 1280; displayHeight: 960; videoTexture: true;">
-    
-    <!-- Using HIRO marker for demo -->
-    <a-marker preset="hiro" id="markerDetected" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+    arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+    vr-mode-ui="enabled: false"
+    renderer="logarithmicDepthBuffer: true; precision: medium;"
+    loading-screen="enabled: false"
+    style="display: block;">
+
+    <a-assets>
+      <video
+        id="videoHiro"
+        crossorigin="anonymous"
+        loop
+        preload="auto"
+        playsinline
+        webkit-playsinline
+        style="display: none;">
+        <!-- Default demo video - replace with your video URL -->
+        <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+      </video>
+    </a-assets>
+
+    <a-marker id="hiroMarker" preset="hiro" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="2">
       
-      <!-- White border frame around video (BEHIND the video) -->
+      <!-- Background plane -->
       <a-plane
-        position="0 0 -0.01"
-        rotation="-90 0 0"
-        width="1.8"
-        height="1.8"
-        color="#ffffff"
-        opacity="1">
-      </a-plane>
-      
-      <!-- Video Plane - Fixed directly on marker surface -->
-      <a-video
-        id="arVideo"
-        src="#demoVideo"
-        width="1.6"
-        height="1.6"
         position="0 0 0"
         rotation="-90 0 0"
-        play="false"
-        opacity="1">
-      </a-video>
+        width="2"
+        height="2"
+        color="#ffffff">
+      </a-plane>
       
-      <!-- Play Icon overlay (shows when video paused) -->
-      <a-circle
-        id="playIcon"
+      <!-- Video plane -->
+      <a-video
+        src="#videoHiro"
+        width="1.8"
+        height="1.8"
         position="0 0 0.01"
-        rotation="-90 0 0"
-        radius="0.25"
-        color="#4caf50"
-        opacity="0.9"
-        visible="false">
-        <a-cone
-          position="0.05 0 0.01"
-          rotation="0 0 90"
-          radius-bottom="0.15"
-          radius-top="0"
-          height="0.2"
-          color="#ffffff">
-        </a-cone>
-      </a-circle>
+        rotation="-90 0 0">
+      </a-video>
       
     </a-marker>
 
-    <!-- Camera -->
     <a-entity camera look-controls="enabled: false"></a-entity>
   </a-scene>
 
-  <!-- Assets -->
-  <a-assets>
-    <video
-      id="demoVideo"
-      crossorigin="anonymous"
-      loop
-      preload="auto"
-      playsinline
-      webkit-playsinline
-      muted
-      style="display: none;">
-      <source src="https://cdn.aframe.io/examples/assets/videos/bunny.mp4" type="video/mp4">
-    </video>
-  </a-assets>
+  <!-- Custom Image Scene (Initially hidden) -->
+  <a-scene
+    id="customScene"
+    embedded
+    arjs="sourceType: webcam; debugUIEnabled: false;"
+    vr-mode-ui="enabled: false"
+    renderer="logarithmicDepthBuffer: true; precision: medium;"
+    loading-screen="enabled: false"
+    style="display: none;">
+
+    <a-assets>
+      <video
+        id="videoCustom"
+        crossorigin="anonymous"
+        loop
+        preload="auto"
+        playsinline
+        webkit-playsinline
+        style="display: none;">
+        <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+      </video>
+    </a-assets>
+
+    <!-- NFT marker - requires image descriptors -->
+    <!-- Replace 'pinball' with your own NFT marker path -->
+    <a-nft
+      id="customMarker"
+      type="nft"
+      url="https://raw.githack.com/AR-js-org/AR.js/master/aframe/examples/image-tracking/nft/trex/trex-image/trex"
+      smooth="true"
+      smoothCount="10"
+      smoothTolerance=".01"
+      smoothThreshold="5">
+      
+      <a-video
+        src="#videoCustom"
+        width="1"
+        height="1"
+        position="0 0 0"
+        rotation="-90 0 0">
+      </a-video>
+      
+    </a-nft>
+
+    <a-entity camera look-controls="enabled: false"></a-entity>
+  </a-scene>
 
   <script>
-    let helpVisible = false;
-    let videoPlaying = false;
+    let currentMode = 'hiro';
+    let videoEnabled = false;
     let markerVisible = false;
+    let currentVideo = null;
+    let infoVisible = false;
 
-    // Prevent default touch behaviors
-    document.addEventListener('touchmove', function(e) {
-      if (e.scale !== 1) { e.preventDefault(); }
-    }, { passive: false });
-
-    // Toggle help panel
-    function toggleHelp() {
-      helpVisible = !helpVisible;
-      const panel = document.getElementById('helpPanel');
-      panel.classList.toggle('show', helpVisible);
-    }
-
-    // Show marker info
-    function showMarkerInfo() {
-      alert('📋 To use this AR experience:\n\n1. Print the HIRO marker (Google "HIRO AR marker")\n2. Or display it on another device screen\n3. Point your camera at the marker\n4. Keep the marker flat and visible\n5. Enjoy your AR video!\n\n💡 Tip: The marker is a black square with a pattern inside.');
-    }
-
-    // Mobile-optimized video controls
-    function playVideo() {
-      const video = document.querySelector('#demoVideo');
-      const arVideo = document.querySelector('#arVideo');
-      
-      if (video && !videoPlaying) {
-        console.log('Attempting to play video...');
-        
-        // Try to unmute and play
-        video.muted = false;
-        
-        // Force play for mobile
-        const playPromise = video.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              console.log('✅ Video playing successfully');
-              videoPlaying = true;
-              document.getElementById('playIcon').setAttribute('visible', 'false');
-              
-              // Make sure A-Frame video component is also playing
-              if (arVideo) {
-                arVideo.components.material.material.map.image.play();
-              }
-            })
-            .catch(error => {
-              console.log('⚠️ Play prevented, trying muted:', error);
-              // If sound fails, try muted
-              video.muted = true;
-              video.play()
-                .then(() => {
-                  console.log('✅ Video playing (muted)');
-                  videoPlaying = true;
-                  document.getElementById('playIcon').setAttribute('visible', 'false');
-                  
-                  // Try to unmute after a short delay
-                  setTimeout(() => {
-                    video.muted = false;
-                  }, 500);
-                })
-                .catch(e => console.log('❌ Play failed completely:', e));
-            });
-        }
-      }
-    }
-
-    function pauseVideo() {
-      const video = document.querySelector('#demoVideo');
-      if (video) {
-        video.pause();
-        videoPlaying = false;
-        document.getElementById('playIcon').setAttribute('visible', 'true');
-        console.log('⏸️ Video paused');
-      }
-    }
-
-    // Wait for AR.js to load
+    // Initialize on load
     window.addEventListener('load', function() {
-      console.log('AR Experience loaded');
+      console.log('Page loaded, waiting for AR to initialize...');
       
-      const scene = document.querySelector('a-scene');
+      const hiroScene = document.getElementById('hiroScene');
       
-      // Wait for AR.js to fully initialize
-      if (scene.hasLoaded) {
-        hideLoader();
+      if (hiroScene.hasLoaded) {
+        onSceneLoaded();
       } else {
-        scene.addEventListener('loaded', function() {
-          hideLoader();
-        });
-      }
-
-      // Set up video for mobile
-      const video = document.querySelector('#demoVideo');
-      if (video) {
-        video.setAttribute('playsinline', '');
-        video.setAttribute('webkit-playsinline', '');
-        
-        // Start muted for autoplay compatibility
-        video.muted = true;
-        
-        // Show tap to start overlay
-        const tapOverlay = document.getElementById('tapToStart');
-        tapOverlay.style.display = 'flex';
-        
-        // Enable video on tap
-        tapOverlay.addEventListener('click', function() {
-          console.log('User tapped to enable video');
-          video.muted = false;
-          
-          // Try to play once to initialize
-          video.play().then(() => {
-            video.pause();
-            console.log('Video initialized successfully');
-          }).catch(e => {
-            console.log('Initial play failed:', e);
-          });
-          
-          tapOverlay.style.display = 'none';
-        });
+        hiroScene.addEventListener('loaded', onSceneLoaded);
       }
     });
 
-    function hideLoader() {
+    function onSceneLoaded() {
+      console.log('AR scene loaded successfully');
+      
       setTimeout(() => {
-        const loader = document.querySelector('.arjs-loader');
-        loader.style.display = 'none';
-        
-        // Show detection ring
-        document.getElementById('detectionRing').classList.add('show');
-        document.getElementById('statusBar').classList.add('show');
-        
-        console.log('AR.js ready, camera should be visible');
-      }, 2000);
+        document.querySelector('.arjs-loader').style.display = 'none';
+        // Show the video overlay instead of directly starting
+        document.getElementById('videoOverlay').classList.remove('hidden');
+      }, 1000);
     }
 
-    // Marker detection events
-    const marker = document.querySelector('#markerDetected');
-    const foundMessage = document.getElementById('foundMessage');
-    const instructions = document.getElementById('instructions');
-    const statusBar = document.getElementById('statusBar');
-    const detectionRing = document.getElementById('detectionRing');
+    function enableExperience() {
+      console.log('User started AR experience');
+      videoEnabled = true;
+      document.getElementById('videoOverlay').classList.add('hidden');
+      
+      // Show UI elements
+      document.getElementById('modeSelector').style.display = 'flex';
+      document.getElementById('instructions').style.display = 'block';
+      document.getElementById('helpBtn').style.display = 'flex';
+      
+      // Initialize current video
+      currentVideo = document.getElementById('videoHiro');
+      setupVideo(currentVideo);
+      
+      // Setup marker events
+      setupMarkerEvents();
+    }
 
-    marker.addEventListener('markerFound', function() {
+    function setupVideo(video) {
+      if (!video) return;
+      
+      video.setAttribute('playsinline', '');
+      video.setAttribute('webkit-playsinline', '');
+      video.muted = true;
+      video.load();
+      
+      // Initialize video
+      video.play().then(() => {
+        video.pause();
+        video.currentTime = 0;
+        console.log('Video initialized');
+      }).catch(e => {
+        console.log('Video init failed:', e);
+      });
+    }
+
+    function switchMode(mode) {
+      console.log('Switching to mode:', mode);
+      currentMode = mode;
+      
+      // Update button states
+      const buttons = document.querySelectorAll('.mode-btn');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      // Switch scenes
+      if (mode === 'hiro') {
+        document.getElementById('hiroScene').style.display = 'block';
+        document.getElementById('customScene').style.display = 'none';
+        currentVideo = document.getElementById('videoHiro');
+        document.getElementById('instructionText').textContent = '📸 Point camera at HIRO marker';
+        updateInfoText('hiro');
+      } else {
+        document.getElementById('hiroScene').style.display = 'none';
+        document.getElementById('customScene').style.display = 'block';
+        currentVideo = document.getElementById('videoCustom');
+        document.getElementById('instructionText').textContent = '📸 Point camera at your custom image';
+        updateInfoText('custom');
+      }
+      
+      setupVideo(currentVideo);
+      setupMarkerEvents();
+    }
+
+    function updateInfoText(mode) {
+      const infoList = document.getElementById('infoList');
+      if (mode === 'hiro') {
+        infoList.innerHTML = `
+          <li>Get HIRO marker from: <a href="https://github.com/AR-js-org/AR.js/blob/master/data/images/hiro.png" target="_blank" style="color: #667eea;">GitHub</a></li>
+          <li>Print or display on screen</li>
+          <li>Point camera at marker</li>
+          <li>Keep marker flat and visible</li>
+          <li>Video plays automatically!</li>
+        `;
+      } else {
+        infoList.innerHTML = `
+          <li>Use a printed custom image</li>
+          <li>Image needs NFT markers generated</li>
+          <li>Point camera at your image</li>
+          <li>Keep image fully visible</li>
+          <li>Video will overlay on image!</li>
+        `;
+      }
+    }
+
+    function setupMarkerEvents() {
+      const marker = currentMode === 'hiro' ? 
+        document.getElementById('hiroMarker') : 
+        document.getElementById('customMarker');
+      
+      if (!marker) {
+        console.error('Marker not found');
+        return;
+      }
+      
+      // Remove old listeners by cloning
+      const newMarker = marker.cloneNode(true);
+      marker.parentNode.replaceChild(newMarker, marker);
+      
+      newMarker.addEventListener('markerFound', onMarkerFound);
+      newMarker.addEventListener('markerLost', onMarkerLost);
+      
+      console.log('Marker events setup for:', currentMode);
+    }
+
+    function onMarkerFound() {
       console.log('✅ Marker detected!');
       markerVisible = true;
       
       // Update UI
-      instructions.classList.add('hidden');
-      foundMessage.classList.add('show');
-      statusBar.textContent = '✅ Marker detected!';
-      detectionRing.classList.remove('show');
+      document.getElementById('instructions').style.display = 'none';
+      document.getElementById('markerFound').classList.add('show');
       
-      // Play video - with retry mechanism
-      console.log('Attempting to play video on marker found...');
+      setTimeout(() => {
+        document.getElementById('markerFound').classList.remove('show');
+      }, 2500);
+      
+      // Play video
       playVideo();
       
-      // Retry after a short delay if needed
-      setTimeout(() => {
-        if (!videoPlaying) {
-          console.log('Video not playing, retrying...');
-          playVideo();
-        }
-      }, 500);
-      
-      // Hide found message after 2 seconds
-      setTimeout(() => {
-        foundMessage.classList.remove('show');
-        statusBar.classList.remove('show');
-      }, 2000);
-    });
+      // Haptic feedback
+      if ('vibrate' in navigator) {
+        navigator.vibrate(100);
+      }
+    }
 
-    marker.addEventListener('markerLost', function() {
+    function onMarkerLost() {
       console.log('❌ Marker lost');
       markerVisible = false;
       
-      // Update UI
-      instructions.classList.remove('hidden');
-      statusBar.textContent = '🔍 Searching for marker...';
-      statusBar.classList.add('show');
-      detectionRing.classList.add('show');
-      
-      // Pause video
+      document.getElementById('instructions').style.display = 'block';
       pauseVideo();
-    });
+    }
+
+    function playVideo() {
+      if (!currentVideo) return;
+      
+      console.log('Playing video...');
+      
+      currentVideo.muted = false;
+      
+      currentVideo.play()
+        .then(() => {
+          console.log('✅ Video playing');
+        })
+        .catch(error => {
+          console.log('⚠️ Unmuted play failed, trying muted');
+          currentVideo.muted = true;
+          currentVideo.play()
+            .then(() => {
+              console.log('✅ Video playing (muted)');
+              setTimeout(() => {
+                currentVideo.muted = false;
+              }, 1000);
+            })
+            .catch(e => console.error('❌ Play failed:', e));
+        });
+    }
+
+    function pauseVideo() {
+      if (currentVideo && !currentVideo.paused) {
+        currentVideo.pause();
+        console.log('⏸️ Video paused');
+      }
+    }
+
+    function toggleInfo() {
+      infoVisible = !infoVisible;
+      document.getElementById('infoPanel').classList.toggle('show', infoVisible);
+    }
 
     // Handle camera permissions
     navigator.mediaDevices.getUserMedia({ 
       video: { 
         facingMode: 'environment',
         width: { ideal: 1280 },
-        height: { ideal: 960 }
+        height: { ideal: 720 }
       } 
     })
-      .then(function(stream) {
-        console.log('✅ Camera access granted');
-        stream.getTracks().forEach(track => track.stop());
-      })
-      .catch(function(error) {
-        console.error('❌ Camera access denied:', error);
-        document.querySelector('.arjs-loader').style.display = 'none';
-        document.getElementById('errorMessage').classList.add('show');
-      });
+    .then(function(stream) {
+      console.log('✅ Camera access granted');
+      stream.getTracks().forEach(track => track.stop());
+    })
+    .catch(function(error) {
+      console.error('❌ Camera access error:', error);
+      alert('⚠️ Camera access required!\n\nPlease:\n1. Allow camera in browser settings\n2. Refresh the page\n3. Grant permission when prompted');
+    });
 
-    // Auto-hide instructions with fade
-    setTimeout(() => {
-      if (!markerVisible && !instructions.classList.contains('hidden')) {
-        instructions.style.opacity = '0.8';
-      }
-    }, 10000);
-
-    // Get experience ID from URL
+    // Get video URL from URL parameter
     const urlParams = new URLSearchParams(window.location.search);
-    const experienceId = urlParams.get('id');
+    const customVideoURL = urlParams.get('video');
     
-    if (experienceId) {
-      console.log('📱 Loading AR experience:', experienceId);
-      // In production, fetch the actual video URL based on experienceId
-    }
-
-    // Vibration feedback on marker found (if supported)
-    if ('vibrate' in navigator) {
-      marker.addEventListener('markerFound', () => {
-        navigator.vibrate(100);
-      });
+    if (customVideoURL) {
+      console.log('Using custom video:', customVideoURL);
+      document.getElementById('videoHiro').src = customVideoURL;
+      document.getElementById('videoCustom').src = customVideoURL;
     }
   </script>
 </body>
