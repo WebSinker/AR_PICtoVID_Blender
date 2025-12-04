@@ -1,55 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-  <title>AR Video Experience</title>
+  <title>AR Viewer - WebSinker AR Experience</title>
   
-  <!-- AR.js with stable versions -->
+  <!-- AR.js for Natural Feature Tracking (NFT) -->
   <script src="https://cdn.jsdelivr.net/npm/aframe@1.3.0/dist/aframe-master.min.js"></script>
-  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
   
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
     body {
       margin: 0;
       overflow: hidden;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      font-family: Arial, sans-serif;
     }
 
-    .arjs-loader {
-      height: 100vh;
-      width: 100vw;
+    .loading {
       position: fixed;
       top: 0;
       left: 0;
+      width: 100%;
+      height: 100%;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      z-index: 9999;
       display: flex;
       justify-content: center;
       align-items: center;
       flex-direction: column;
       color: white;
-      text-align: center;
-      padding: 20px;
+      z-index: 10000;
     }
 
-    .arjs-loader h2 {
-      font-size: 1.8em;
+    .loading h2 {
+      font-size: 2em;
       margin-bottom: 20px;
+      text-align: center;
+      padding: 0 20px;
     }
 
-    .arjs-loader p {
+    .loading p {
       font-size: 1.1em;
-      margin: 10px 0;
       opacity: 0.9;
+      margin: 10px 0;
+      text-align: center;
+      padding: 0 20px;
+      max-width: 500px;
     }
 
     .spinner {
@@ -59,12 +55,61 @@
       width: 60px;
       height: 60px;
       animation: spin 1s linear infinite;
-      margin: 20px auto;
+      margin: 20px;
     }
 
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
+    }
+
+    .start-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: white;
+      z-index: 9999;
+      padding: 20px;
+    }
+
+    .start-overlay h2 {
+      font-size: 2.2em;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .start-overlay p {
+      font-size: 1.1em;
+      opacity: 0.9;
+      text-align: center;
+      margin: 10px 0;
+      line-height: 1.6;
+      max-width: 500px;
+    }
+
+    .start-btn {
+      background: #4caf50;
+      color: white;
+      border: none;
+      padding: 25px 50px;
+      font-size: 24px;
+      border-radius: 35px;
+      cursor: pointer;
+      margin-top: 30px;
+      font-weight: bold;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      transition: transform 0.2s;
+    }
+
+    .start-btn:active {
+      transform: scale(0.95);
     }
 
     .instructions {
@@ -80,9 +125,10 @@
       text-align: center;
       font-weight: bold;
       font-size: 18px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
       max-width: 90%;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
       animation: pulse 2s infinite;
+      line-height: 1.4;
     }
 
     @keyframes pulse {
@@ -104,11 +150,11 @@
       font-weight: bold;
       display: none;
       box-shadow: 0 6px 25px rgba(0,0,0,0.4);
-      animation: slideUp 0.5s ease;
     }
 
     .marker-found.show {
       display: block;
+      animation: slideUp 0.5s ease;
     }
 
     @keyframes slideUp {
@@ -122,111 +168,113 @@
       }
     }
 
-    .help-button {
+    .error {
       position: fixed;
-      bottom: 30px;
-      right: 30px;
-      background: rgba(33, 150, 243, 0.95);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(244, 67, 54, 0.98);
       color: white;
-      border: none;
-      padding: 20px;
-      border-radius: 50%;
-      font-size: 28px;
-      cursor: pointer;
-      z-index: 998;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-      width: 70px;
-      height: 70px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* Enable interaction overlay for video */
-    .video-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 1001;
-      background: rgba(0, 0, 0, 0.8);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      color: white;
-    }
-
-    .video-overlay.hidden {
-      display: none;
-    }
-
-    .video-overlay button {
-      background: #4caf50;
-      color: white;
-      border: none;
-      padding: 20px 40px;
-      font-size: 20px;
-      border-radius: 30px;
-      cursor: pointer;
-      margin-top: 20px;
-      font-weight: bold;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    }
-
-    .video-overlay h2 {
-      margin-bottom: 10px;
-      font-size: 2em;
-    }
-
-    .video-overlay p {
-      font-size: 1.2em;
-      opacity: 0.9;
+      padding: 30px;
+      border-radius: 20px;
+      z-index: 10001;
       text-align: center;
-      max-width: 80%;
+      max-width: 90%;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    }
+
+    .error h3 {
+      font-size: 1.5em;
+      margin-bottom: 15px;
+    }
+
+    .error p {
+      margin: 10px 0;
+      line-height: 1.6;
+    }
+
+    .error button {
+      background: white;
+      color: #f44336;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 15px;
+      font-size: 1em;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .debug-info {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #00ff00;
+      padding: 10px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      z-index: 998;
+      max-width: 300px;
+      word-break: break-all;
     }
   </style>
 </head>
 <body>
+
   <!-- Loading Screen -->
-  <div class="arjs-loader">
+  <div class="loading" id="loading">
     <h2>🎬 Loading AR Experience...</h2>
     <div class="spinner"></div>
-    <p>Please allow camera access</p>
-    <p>Point your camera at the HIRO marker</p>
+    <p id="loadingStatus">Initializing...</p>
   </div>
 
-  <!-- Video Enable Overlay -->
-  <div class="video-overlay" id="videoOverlay">
-    <h2>📱 Tap to Start AR</h2>
-    <p>Click the button below to enable video and audio for the AR experience</p>
-    <button onclick="enableVideo()">🎥 Enable Video</button>
+  <!-- Start Overlay -->
+  <div class="start-overlay hidden" id="startOverlay">
+    <h2>📱 Ready to Start AR</h2>
+    <p>Make sure you have the marker image ready.</p>
+    <p style="font-size: 0.95em; opacity: 0.8;">The video will play when you point your camera at the marker.</p>
+    <button class="start-btn" onclick="startAR()">🚀 Start AR</button>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error hidden" id="error">
+    <h3>⚠️ Error</h3>
+    <p id="errorMessage"></p>
+    <button onclick="window.location.reload()">🔄 Retry</button>
   </div>
 
   <!-- Instructions -->
-  <div class="instructions" id="instructions">
-    📸 Point camera at HIRO marker!<br>
+  <div class="instructions hidden" id="instructions">
+    📸 Point camera at your marker image!<br>
     <span style="font-size: 0.85em;">Hold steady & keep marker visible</span>
   </div>
 
   <!-- Marker Found Message -->
   <div class="marker-found" id="markerFound">
-    ✅ Marker Detected!
+    ✅ Marker Detected! Playing video...
   </div>
 
-  <!-- Help Button -->
-  <button class="help-button" onclick="showMarkerInfo()">?</button>
+  <!-- Debug Info (optional - can be removed) -->
+  <div class="debug-info hidden" id="debugInfo">
+    <div id="debugText">Debug info...</div>
+  </div>
 
   <!-- AR Scene -->
   <a-scene
+    id="scene"
     embedded
-    arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3; trackingMethod: best;"
+    arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono;"
     vr-mode-ui="enabled: false"
     renderer="logarithmicDepthBuffer: true; precision: medium;"
-    loading-screen="enabled: false">
+    loading-screen="enabled: false"
+    style="position: fixed; top: 0; left: 0; width: 100%; height: 100%;">
 
-    <!-- Assets INSIDE a-scene -->
     <a-assets>
       <video
         id="arVideo"
@@ -235,184 +283,233 @@
         preload="auto"
         playsinline
         webkit-playsinline
+        muted
         style="display: none;">
-        <!-- Replace with your own video URL -->
-        <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
       </video>
     </a-assets>
 
-    <!-- HIRO Marker with Video -->
-    <a-marker id="hiroMarker" preset="hiro" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="2">
-      
-      <!-- White background plane -->
-      <a-plane
-        position="0 0 0"
-        rotation="-90 0 0"
-        width="2"
-        height="2"
-        color="#ffffff"
-        opacity="1">
-      </a-plane>
-      
-      <!-- Video Plane -->
-      <a-video
-        id="videoPlane"
-        src="#arVideo"
-        width="1.8"
-        height="1.8"
-        position="0 0 0.01"
-        rotation="-90 0 0">
-      </a-video>
-      
-    </a-marker>
+    <!-- NFT Marker will be added dynamically -->
 
-    <!-- Camera -->
     <a-entity camera look-controls="enabled: false"></a-entity>
   </a-scene>
 
   <script>
-    let videoEnabled = false;
+    // Get parameters from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const markerURL = urlParams.get('marker');
+    const videoURL = urlParams.get('video');
+
+    const scene = document.getElementById('scene');
+    const video = document.getElementById('arVideo');
+    const loading = document.getElementById('loading');
+    const startOverlay = document.getElementById('startOverlay');
+    const instructions = document.getElementById('instructions');
+    const markerFound = document.getElementById('markerFound');
+    const error = document.getElementById('error');
+    const errorMessage = document.getElementById('errorMessage');
+    const loadingStatus = document.getElementById('loadingStatus');
+    const debugInfo = document.getElementById('debugInfo');
+    const debugText = document.getElementById('debugText');
+
+    let started = false;
+    let markerAdded = false;
     let markerVisible = false;
-    let video = null;
+    let debugMode = urlParams.get('debug') === 'true'; // Add ?debug=true to URL for debug mode
 
-    // Wait for scene to load
-    document.addEventListener('DOMContentLoaded', function() {
-      const scene = document.querySelector('a-scene');
-      
-      // Hide loader when scene is ready
-      if (scene.hasLoaded) {
-        init();
+    if (debugMode) {
+      debugInfo.classList.remove('hidden');
+    }
+
+    function updateDebug(text) {
+      if (debugMode) {
+        debugText.innerHTML += `<br>${text}`;
+        console.log(text);
       } else {
-        scene.addEventListener('loaded', init);
-      }
-    });
-
-    function init() {
-      console.log('AR scene loaded');
-      
-      // Hide loader
-      setTimeout(() => {
-        document.querySelector('.arjs-loader').style.display = 'none';
-      }, 1500);
-
-      video = document.getElementById('arVideo');
-      
-      // Set video properties for mobile
-      video.setAttribute('playsinline', '');
-      video.setAttribute('webkit-playsinline', '');
-      video.muted = true; // Start muted for autoplay
-      
-      // Setup marker events
-      setupMarkerEvents();
-    }
-
-    function enableVideo() {
-      console.log('User enabled video');
-      videoEnabled = true;
-      document.getElementById('videoOverlay').classList.add('hidden');
-      
-      // Initialize video
-      if (video) {
-        video.muted = false; // Try to unmute
-        video.load();
-        
-        // Try initial play-pause cycle to initialize
-        video.play().then(() => {
-          video.pause();
-          video.currentTime = 0;
-          console.log('Video initialized');
-        }).catch(e => {
-          console.log('Initial play failed, will try muted:', e);
-          video.muted = true;
-        });
+        console.log(text);
       }
     }
 
-    function setupMarkerEvents() {
-      const marker = document.querySelector('#hiroMarker');
-      const instructions = document.getElementById('instructions');
-      const markerFound = document.getElementById('markerFound');
+    // Initialize
+    window.addEventListener('load', function() {
+      updateDebug('Page loaded');
+      updateDebug(`Marker: ${markerURL}`);
+      updateDebug(`Video: ${videoURL}`);
 
-      marker.addEventListener('markerFound', function() {
-        console.log('✅ HIRO Marker detected!');
-        markerVisible = true;
+      // Validate parameters
+      if (!markerURL || !videoURL) {
+        showError('Missing required parameters!<br><br>Need both <code>marker</code> and <code>video</code> URLs.<br><br>Please generate a new QR code.');
+        return;
+      }
+
+      // Set video source
+      video.src = videoURL;
+      loadingStatus.textContent = 'Loading video...';
+      updateDebug('Video source set');
+
+      // Wait for video to load
+      video.addEventListener('loadeddata', function() {
+        updateDebug('✅ Video loaded successfully');
+        updateDebug(`Video: ${video.videoWidth}x${video.videoHeight}, ${Math.round(video.duration)}s`);
+        loadingStatus.textContent = 'Video loaded! Initializing AR...';
         
-        // Update UI
-        instructions.style.display = 'none';
-        markerFound.classList.add('show');
-        
-        // Auto-hide message after 2 seconds
-        setTimeout(() => {
-          markerFound.classList.remove('show');
-        }, 2000);
-        
-        // Play video
-        playVideo();
-        
-        // Vibration feedback if supported
-        if ('vibrate' in navigator) {
-          navigator.vibrate(100);
+        // Wait for scene to load
+        if (scene.hasLoaded) {
+          onSceneReady();
+        } else {
+          scene.addEventListener('loaded', onSceneReady);
         }
       });
 
-      marker.addEventListener('markerLost', function() {
-        console.log('❌ Marker lost');
-        markerVisible = false;
-        
-        // Update UI
-        instructions.style.display = 'block';
-        
-        // Pause video
-        pauseVideo();
+      video.addEventListener('error', function(e) {
+        console.error('Video load error:', e);
+        showError(`Failed to load video!<br><br><strong>URL:</strong> ${videoURL}<br><br>Make sure:<br>• Video file exists in your repo<br>• URL is correct<br>• File is accessible`);
       });
+    });
+
+    function onSceneReady() {
+      updateDebug('✅ AR scene loaded');
+      loadingStatus.textContent = 'AR ready! Adding marker tracking...';
+      
+      // Add NFT marker to scene
+      addNFTMarker();
+      
+      setTimeout(() => {
+        loading.classList.add('hidden');
+        startOverlay.classList.remove('hidden');
+        updateDebug('Ready to start');
+      }, 1000);
+    }
+
+    function addNFTMarker() {
+      updateDebug('Adding NFT marker...');
+      updateDebug(`Marker URL: ${markerURL}`);
+      
+      // Create NFT marker entity
+      const nftMarker = document.createElement('a-nft');
+      nftMarker.setAttribute('type', 'nft');
+      nftMarker.setAttribute('url', markerURL);
+      nftMarker.setAttribute('smooth', 'true');
+      nftMarker.setAttribute('smoothCount', '10');
+      nftMarker.setAttribute('smoothTolerance', '0.01');
+      nftMarker.setAttribute('smoothThreshold', '5');
+      
+      // Create video entity
+      const videoEntity = document.createElement('a-video');
+      videoEntity.setAttribute('src', '#arVideo');
+      videoEntity.setAttribute('width', '1');
+      videoEntity.setAttribute('height', '1');
+      videoEntity.setAttribute('position', '0 0 0');
+      videoEntity.setAttribute('rotation', '-90 0 0');
+      
+      // Add video to marker
+      nftMarker.appendChild(videoEntity);
+      
+      // Add marker to scene
+      scene.appendChild(nftMarker);
+      markerAdded = true;
+      
+      updateDebug('✅ NFT marker added');
+      
+      // Set up marker events
+      nftMarker.addEventListener('markerFound', onMarkerFound);
+      nftMarker.addEventListener('markerLost', onMarkerLost);
+      
+      updateDebug('Event listeners attached');
+    }
+
+    function startAR() {
+      updateDebug('User clicked START');
+      started = true;
+      
+      startOverlay.classList.add('hidden');
+      instructions.classList.remove('hidden');
+      
+      // Initialize video
+      video.muted = true;
+      video.load();
+      
+      // Try initial play to initialize
+      video.play().then(() => {
+        video.pause();
+        video.currentTime = 0;
+        updateDebug('✅ Video initialized');
+      }).catch(e => {
+        updateDebug('⚠️ Video init warning: ' + e.message);
+      });
+
+      updateDebug('AR started - waiting for marker...');
+    }
+
+    function onMarkerFound() {
+      updateDebug('🎯 MARKER FOUND!');
+      markerVisible = true;
+      
+      instructions.classList.add('hidden');
+      markerFound.classList.add('show');
+      
+      setTimeout(() => {
+        markerFound.classList.remove('show');
+      }, 2500);
+      
+      // Play video
+      playVideo();
+      
+      // Vibrate if supported
+      if (navigator.vibrate) {
+        navigator.vibrate(100);
+        updateDebug('Vibration sent');
+      }
+    }
+
+    function onMarkerLost() {
+      updateDebug('❌ Marker lost');
+      markerVisible = false;
+      
+      instructions.classList.remove('hidden');
+      
+      // Pause video
+      if (!video.paused) {
+        video.pause();
+        updateDebug('Video paused');
+      }
     }
 
     function playVideo() {
-      if (!video) return;
+      updateDebug('▶️ Playing video...');
       
-      console.log('Attempting to play video...');
-      
-      // Try unmuted first
       video.muted = false;
       
-      const playPromise = video.play();
-      
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            console.log('✅ Video playing with sound');
-          })
-          .catch(error => {
-            console.log('⚠️ Unmuted play failed, trying muted:', error);
-            // Fallback to muted
-            video.muted = true;
-            video.play()
-              .then(() => {
-                console.log('✅ Video playing (muted)');
-                // Try to unmute after a short delay
-                setTimeout(() => {
-                  video.muted = false;
-                }, 1000);
-              })
-              .catch(e => {
-                console.error('❌ Video play failed completely:', e);
-              });
-          });
-      }
+      video.play()
+        .then(() => {
+          updateDebug('✅ Video playing with audio');
+        })
+        .catch(error => {
+          updateDebug('⚠️ Unmuted play failed, trying muted');
+          video.muted = true;
+          video.play()
+            .then(() => {
+              updateDebug('✅ Video playing (muted)');
+              // Try unmuting after delay
+              setTimeout(() => {
+                video.muted = false;
+                updateDebug('Attempting to unmute...');
+              }, 1000);
+            })
+            .catch(e => {
+              updateDebug('❌ Video play failed: ' + e.message);
+            });
+        });
     }
 
-    function pauseVideo() {
-      if (video && !video.paused) {
-        video.pause();
-        console.log('⏸️ Video paused');
-      }
+    function showError(message) {
+      loading.classList.add('hidden');
+      startOverlay.classList.add('hidden');
+      error.classList.remove('hidden');
+      errorMessage.innerHTML = message;
+      updateDebug('ERROR: ' + message);
     }
 
-    function showMarkerInfo() {
-      alert('📋 How to use:\n\n1. Get the HIRO marker:\n   • Google "HIRO AR marker"\n   • Or get it at: https://github.com/AR-js-org/AR.js/blob/master/data/images/hiro.png\n\n2. Print or display the marker on another screen\n\n3. Point your camera at the marker\n\n4. Keep the marker flat and fully visible\n\n5. The video will appear and play on the marker!\n\n💡 Tip: Good lighting helps detection!');
-    }
-
-    // Handle camera permission errors
+    // Handle camera permissions
     navigator.mediaDevices.getUserMedia({ 
       video: { 
         facingMode: 'environment',
@@ -421,13 +518,22 @@
       } 
     })
     .then(function(stream) {
-      console.log('✅ Camera access granted');
+      updateDebug('✅ Camera access granted');
+      updateDebug(`Camera: ${stream.getVideoTracks()[0].label}`);
       stream.getTracks().forEach(track => track.stop());
     })
-    .catch(function(error) {
-      console.error('❌ Camera access denied:', error);
-      alert('⚠️ Camera access is required for AR.\n\nPlease:\n1. Allow camera access in your browser settings\n2. Refresh the page\n3. Grant camera permission when prompted');
+    .catch(function(err) {
+      console.error('❌ Camera access error:', err);
+      showError(`Camera access required!<br><br>Please allow camera access and refresh.<br><br><strong>Error:</strong> ${err.message}`);
     });
+
+    // Log parameters for debugging
+    console.log('=== AR VIEWER INITIALIZED ===');
+    console.log('Marker URL:', markerURL);
+    console.log('Video URL:', videoURL);
+    console.log('Debug mode:', debugMode);
+    console.log('Add ?debug=true to URL to see debug panel');
   </script>
+
 </body>
 </html>
