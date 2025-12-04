@@ -386,6 +386,33 @@
       transform: scale(0.95);
     }
 
+    /* Tap to Start Overlay */
+    .tap-to-start {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(102, 126, 234, 0.95);
+      z-index: 10001;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      cursor: pointer;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .tap-to-start h3 {
+      font-size: 1.5em;
+      margin: 0;
+    }
+
+    .tap-to-start p {
+      font-size: 1em;
+      margin: 0;
+    }
+
     /* Responsive adjustments */
     @media (max-width: 400px) {
       .instructions {
@@ -473,6 +500,15 @@
   <!-- Print Marker Button -->
   <button class="print-marker-btn" onclick="showMarkerInfo()">📄 Get Marker</button>
 
+  <!-- Tap to Start Overlay (for mobile autoplay) -->
+  <div class="tap-to-start" id="tapToStart" style="display: none;">
+    <div style="text-align: center;">
+      <h2 style="font-size: 2em; margin-bottom: 20px;">👆</h2>
+      <h3 style="margin-bottom: 15px;">Tap to Enable Video</h3>
+      <p style="opacity: 0.9;">Required for video playback</p>
+    </div>
+  </div>
+
   <!-- Help Panel -->
   <div class="help-panel" id="helpPanel">
     <h3>💡 Tips for Success</h3>
@@ -551,6 +587,7 @@
       preload="auto"
       playsinline
       webkit-playsinline
+      muted
       style="display: none;">
       <source src="https://cdn.aframe.io/examples/assets/videos/bunny.mp4" type="video/mp4">
     </video>
@@ -581,22 +618,44 @@
     // Mobile-optimized video controls
     function playVideo() {
       const video = document.querySelector('#demoVideo');
+      const arVideo = document.querySelector('#arVideo');
+      
       if (video && !videoPlaying) {
+        console.log('Attempting to play video...');
+        
+        // Try to unmute and play
+        video.muted = false;
+        
         // Force play for mobile
         const playPromise = video.play();
         if (playPromise !== undefined) {
           playPromise
             .then(() => {
-              console.log('Video playing successfully');
+              console.log('✅ Video playing successfully');
               videoPlaying = true;
               document.getElementById('playIcon').setAttribute('visible', 'false');
+              
+              // Make sure A-Frame video component is also playing
+              if (arVideo) {
+                arVideo.components.material.material.map.image.play();
+              }
             })
             .catch(error => {
-              console.log('Play prevented:', error);
-              // Try again with user interaction
-              setTimeout(() => {
-                video.play().catch(e => console.log('Retry failed:', e));
-              }, 100);
+              console.log('⚠️ Play prevented, trying muted:', error);
+              // If sound fails, try muted
+              video.muted = true;
+              video.play()
+                .then(() => {
+                  console.log('✅ Video playing (muted)');
+                  videoPlaying = true;
+                  document.getElementById('playIcon').setAttribute('visible', 'false');
+                  
+                  // Try to unmute after a short delay
+                  setTimeout(() => {
+                    video.muted = false;
+                  }, 500);
+                })
+                .catch(e => console.log('❌ Play failed completely:', e));
             });
         }
       }
@@ -608,6 +667,7 @@
         video.pause();
         videoPlaying = false;
         document.getElementById('playIcon').setAttribute('visible', 'true');
+        console.log('⏸️ Video paused');
       }
     }
 
@@ -631,7 +691,29 @@
       if (video) {
         video.setAttribute('playsinline', '');
         video.setAttribute('webkit-playsinline', '');
-        video.muted = false; // Enable sound
+        
+        // Start muted for autoplay compatibility
+        video.muted = true;
+        
+        // Show tap to start overlay
+        const tapOverlay = document.getElementById('tapToStart');
+        tapOverlay.style.display = 'flex';
+        
+        // Enable video on tap
+        tapOverlay.addEventListener('click', function() {
+          console.log('User tapped to enable video');
+          video.muted = false;
+          
+          // Try to play once to initialize
+          video.play().then(() => {
+            video.pause();
+            console.log('Video initialized successfully');
+          }).catch(e => {
+            console.log('Initial play failed:', e);
+          });
+          
+          tapOverlay.style.display = 'none';
+        });
       }
     });
 
@@ -665,8 +747,17 @@
       statusBar.textContent = '✅ Marker detected!';
       detectionRing.classList.remove('show');
       
-      // Play video
+      // Play video - with retry mechanism
+      console.log('Attempting to play video on marker found...');
       playVideo();
+      
+      // Retry after a short delay if needed
+      setTimeout(() => {
+        if (!videoPlaying) {
+          console.log('Video not playing, retrying...');
+          playVideo();
+        }
+      }, 500);
       
       // Hide found message after 2 seconds
       setTimeout(() => {
