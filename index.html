@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AR Video Maker - Create Your AR Experience</title>
+  <title>Stories AR Style - Custom Image AR Creator</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  
   <style>
     * {
       margin: 0;
@@ -20,7 +21,7 @@
     }
 
     .container {
-      max-width: 1200px;
+      max-width: 1000px;
       margin: 0 auto;
     }
 
@@ -38,92 +39,85 @@
 
     .header p {
       font-size: 1.2em;
-      opacity: 0.9;
+      opacity: 0.95;
     }
 
-    .step-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-
-    .step-card {
+    .card {
       background: white;
       border-radius: 20px;
       padding: 30px;
+      margin-bottom: 20px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      transition: transform 0.3s ease;
     }
 
-    .step-card:hover {
-      transform: translateY(-5px);
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
     }
 
     .step-number {
-      display: inline-block;
-      width: 40px;
-      height: 40px;
+      width: 50px;
+      height: 50px;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border-radius: 50%;
-      text-align: center;
-      line-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-weight: bold;
-      font-size: 1.2em;
-      margin-bottom: 15px;
+      font-size: 1.5em;
+      flex-shrink: 0;
     }
 
-    .step-card h3 {
+    .step-title {
+      font-size: 1.5em;
       color: #333;
-      margin-bottom: 15px;
-      font-size: 1.3em;
+      font-weight: bold;
     }
 
-    .upload-zone {
+    .upload-area {
       border: 3px dashed #ccc;
       border-radius: 15px;
-      padding: 30px;
+      padding: 40px;
       text-align: center;
       cursor: pointer;
       transition: all 0.3s ease;
       background: #f9f9f9;
-      margin-bottom: 15px;
+      margin-bottom: 20px;
     }
 
-    .upload-zone:hover {
+    .upload-area:hover {
       border-color: #667eea;
       background: #f0f0ff;
     }
 
-    .upload-zone.active {
+    .upload-area.active {
       border-color: #4caf50;
       background: #f0fff0;
     }
 
-    .upload-zone img, .upload-zone video {
+    .upload-area img,
+    .upload-area video {
       max-width: 100%;
-      max-height: 200px;
+      max-height: 300px;
       margin-top: 15px;
       border-radius: 10px;
-    }
-
-    .file-input {
-      display: none;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
 
     .btn {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border: none;
-      padding: 15px 30px;
+      padding: 15px 35px;
       border-radius: 25px;
       font-size: 1.1em;
       cursor: pointer;
-      transition: all 0.3s ease;
       font-weight: bold;
       box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      display: inline-block;
+      transition: all 0.3s ease;
       margin: 10px 5px;
     }
 
@@ -135,28 +129,45 @@
     .btn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
+      transform: none;
     }
 
     .btn-success {
       background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
     }
 
-    .btn-warning {
-      background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    .alert {
+      padding: 20px;
+      border-radius: 15px;
+      margin: 20px 0;
+      border-left: 5px solid;
+    }
+
+    .alert-info {
+      background: #e3f2fd;
+      border-color: #2196f3;
+      color: #1976d2;
+    }
+
+    .alert-warning {
+      background: #fff3cd;
+      border-color: #ffc107;
+      color: #856404;
+    }
+
+    .alert-success {
+      background: #d4edda;
+      border-color: #28a745;
+      color: #155724;
     }
 
     .result-section {
-      background: white;
-      border-radius: 20px;
-      padding: 40px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
       display: none;
-      text-align: center;
+      animation: slideIn 0.5s ease;
     }
 
     .result-section.show {
       display: block;
-      animation: slideIn 0.5s ease;
     }
 
     @keyframes slideIn {
@@ -171,50 +182,19 @@
     }
 
     .qr-container {
-      margin: 30px 0;
-      padding: 20px;
+      text-align: center;
+      padding: 30px;
       background: #f9f9f9;
       border-radius: 15px;
+      margin: 20px 0;
+    }
+
+    #qrcode {
       display: inline-block;
-    }
-
-    #qrcode canvas, #qrcode img {
-      margin: 0 auto;
-      display: block;
-    }
-
-    .ar-link {
-      background: #e3f2fd;
-      padding: 15px;
-      border-radius: 10px;
-      margin: 20px 0;
-      word-break: break-all;
-      font-family: 'Courier New', monospace;
-      border-left: 4px solid #2196f3;
-    }
-
-    .instructions {
-      background: #fff3cd;
-      border-left: 4px solid #ffc107;
       padding: 20px;
+      background: white;
       border-radius: 10px;
-      margin: 20px 0;
-      text-align: left;
-    }
-
-    .instructions h4 {
-      color: #856404;
-      margin-bottom: 15px;
-      font-size: 1.2em;
-    }
-
-    .instructions ol {
-      margin-left: 20px;
-      line-height: 2;
-    }
-
-    .instructions li {
-      margin-bottom: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
 
     .preview-grid {
@@ -226,56 +206,60 @@
 
     .preview-item {
       background: #f9f9f9;
-      padding: 15px;
-      border-radius: 10px;
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
     }
 
-    .preview-item h4 {
+    .preview-item h3 {
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+
+    .preview-item img,
+    .preview-item video {
+      max-width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .instructions-list {
+      background: #f8f9fa;
+      padding: 25px;
+      border-radius: 15px;
+      margin: 20px 0;
+    }
+
+    .instructions-list h3 {
+      color: #667eea;
+      margin-bottom: 15px;
+      font-size: 1.3em;
+    }
+
+    .instructions-list ol {
+      margin-left: 25px;
+      line-height: 2;
+    }
+
+    .instructions-list li {
       margin-bottom: 10px;
+      color: #333;
+    }
+
+    .instructions-list strong {
       color: #667eea;
     }
 
-    .icon {
-      font-size: 2em;
-      margin-bottom: 10px;
+    code {
+      background: #f4f4f4;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      color: #d63384;
     }
 
-    .loading {
+    .hidden {
       display: none;
-      text-align: center;
-      padding: 20px;
-    }
-
-    .loading.show {
-      display: block;
-    }
-
-    .spinner {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #667eea;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      animation: spin 1s linear infinite;
-      margin: 20px auto;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .alert {
-      padding: 15px;
-      border-radius: 10px;
-      margin: 20px 0;
-      font-weight: 500;
-    }
-
-    .alert-info {
-      background: #d1ecf1;
-      color: #0c5460;
-      border-left: 4px solid #17a2b8;
     }
 
     @media (max-width: 768px) {
@@ -292,112 +276,213 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>🎬 AR Video Maker</h1>
-      <p>Transform any photo into an interactive AR experience!</p>
+      <h1>🎬 Stories AR Style Creator</h1>
+      <p>Turn any image into an AR experience - video plays directly on YOUR image!</p>
     </div>
 
-    <!-- Step Cards -->
-    <div class="step-cards">
-      <!-- Step 1: Upload Image -->
-      <div class="step-card">
+    <!-- Step 1: Upload Target Image -->
+    <div class="card">
+      <div class="step-header">
         <div class="step-number">1</div>
-        <h3>📸 Upload Target Image</h3>
-        <p style="color: #666; margin-bottom: 15px;">Choose the photo that will trigger your AR video (e.g., student drawing, poster, book cover)</p>
-        <div class="upload-zone" id="imageZone" onclick="document.getElementById('imageInput').click()">
-          <div class="icon">🖼️</div>
-          <p><strong>Click to upload image</strong></p>
-          <p style="font-size: 0.9em; color: #999;">JPG or PNG • Best: High contrast images</p>
-          <img id="imagePreview" style="display: none;">
-        </div>
-        <input type="file" id="imageInput" class="file-input" accept="image/*">
+        <div class="step-title">Upload Your Target Image</div>
       </div>
-
-      <!-- Step 2: Upload Video -->
-      <div class="step-card">
-        <div class="step-number">2</div>
-        <h3>🎥 Upload AR Video</h3>
-        <p style="color: #666; margin-bottom: 15px;">Upload the video that will play when the image is detected</p>
-        <div class="upload-zone" id="videoZone" onclick="document.getElementById('videoInput').click()">
-          <div class="icon">📹</div>
-          <p><strong>Click to upload video</strong></p>
-          <p style="font-size: 0.9em; color: #999;">MP4 or WebM • Max 50MB recommended</p>
-          <video id="videoPreview" style="display: none;" controls></video>
-        </div>
-        <input type="file" id="videoInput" class="file-input" accept="video/*">
-      </div>
-
-      <!-- Step 3: Generate -->
-      <div class="step-card">
-        <div class="step-number">3</div>
-        <h3>✨ Generate AR Experience</h3>
-        <p style="color: #666; margin-bottom: 15px;">Create your QR code and AR link</p>
-        <div style="text-align: center; padding: 20px;">
-          <div class="icon">🎯</div>
-          <button class="btn btn-success" id="generateBtn" disabled onclick="generateAR()">
-            🚀 Generate AR Experience
-          </button>
-        </div>
-        <div class="alert alert-info" style="font-size: 0.9em;">
-          💡 <strong>Tip:</strong> Use images with good detail and contrast for best tracking results!
-        </div>
-      </div>
-    </div>
-
-    <!-- Loading State -->
-    <div class="loading" id="loading">
-      <div class="spinner"></div>
-      <p>Generating your AR experience...</p>
-    </div>
-
-    <!-- Result Section -->
-    <div class="result-section" id="resultSection">
-      <h2 style="color: #667eea; margin-bottom: 30px;">🎉 Your AR Experience is Ready!</h2>
       
-      <div class="preview-grid">
-        <div class="preview-item">
-          <h4>📸 Target Image</h4>
-          <img id="finalImagePreview" style="max-width: 100%; border-radius: 10px;">
-        </div>
-        <div class="preview-item">
-          <h4>🎥 AR Video</h4>
-          <video id="finalVideoPreview" style="max-width: 100%; border-radius: 10px;" controls></video>
-        </div>
+      <div class="alert alert-info">
+        <strong>💡 This is the image that users will point their camera at!</strong><br>
+        Examples: Student artwork, product photo, poster, book cover, etc.<br>
+        <strong>Best results:</strong> Images with clear details, good contrast, not too much text.
+      </div>
+      
+      <div class="upload-area" id="imageArea" onclick="document.getElementById('imageInput').click()">
+        <div style="font-size: 3em;">📸</div>
+        <h3>Click to Upload Target Image</h3>
+        <p style="color: #666; margin-top: 10px;">The image your video will play on</p>
+        <p style="color: #999; font-size: 0.9em;">JPG, PNG • High contrast images work best</p>
+        <img id="imagePreview" style="display: none;">
+      </div>
+      <input type="file" id="imageInput" accept="image/*" style="display: none;">
+    </div>
+
+    <!-- Step 2: Upload Video -->
+    <div class="card">
+      <div class="step-header">
+        <div class="step-number">2</div>
+        <div class="step-title">Upload Your AR Video</div>
+      </div>
+      
+      <div class="alert alert-info">
+        <strong>🎥 This video will play when camera sees your image!</strong><br>
+        The video will appear overlaid on your image and auto-adjust to its size.
+      </div>
+      
+      <div class="upload-area" id="videoArea" onclick="document.getElementById('videoInput').click()">
+        <div style="font-size: 3em;">🎬</div>
+        <h3>Click to Upload Video</h3>
+        <p style="color: #666; margin-top: 10px;">The video that plays on your image</p>
+        <p style="color: #999; font-size: 0.9em;">MP4, WebM • Under 50MB recommended</p>
+        <video id="videoPreview" controls style="display: none;"></video>
+      </div>
+      <input type="file" id="videoInput" accept="video/*" style="display: none;">
+    </div>
+
+    <!-- Step 3: Create NFT Markers -->
+    <div class="card">
+      <div class="step-header">
+        <div class="step-number">3</div>
+        <div class="step-title">Create AR Tracking Data (NFT Markers)</div>
+      </div>
+      
+      <div class="alert alert-warning">
+        <strong>⚠️ IMPORTANT: This step is REQUIRED for custom images!</strong><br>
+        Unlike HIRO marker, custom images need special processing to be trackable.
       </div>
 
-      <h3 style="margin: 30px 0 20px 0;">📱 Scan this QR Code to Experience AR</h3>
-      <div class="qr-container">
-        <div id="qrcode"></div>
-      </div>
-
-      <div class="ar-link">
-        <strong>🔗 Or use this link:</strong><br>
-        <a id="arLink" href="#" target="_blank" style="color: #2196f3; text-decoration: none;"></a>
-      </div>
-
-      <div class="instructions">
-        <h4>📋 How to Use Your AR Experience:</h4>
+      <div class="instructions-list">
+        <h3>📋 How to Create NFT Markers:</h3>
         <ol>
-          <li><strong>Print the target image</strong> (the photo you uploaded in Step 1)</li>
-          <li><strong>Scan the QR code</strong> above with a smartphone or tablet</li>
-          <li><strong>Allow camera access</strong> when prompted</li>
-          <li><strong>Point your camera at the printed image</strong></li>
-          <li><strong>Watch the magic!</strong> Your video will appear and play on the image! 🎬✨</li>
+          <li><strong>Go to NFT Marker Creator:</strong> <a href="https://carnaux.github.io/NFT-Marker-Creator/" target="_blank" style="color: #667eea;">carnaux.github.io/NFT-Marker-Creator</a></li>
+          <li><strong>Upload your image</strong> (the same one you uploaded above)</li>
+          <li><strong>Wait for processing</strong> (takes 10-30 seconds)</li>
+          <li><strong>Download the ZIP file</strong> containing 3 files:
+            <ul style="margin-top: 10px;">
+              <li><code>yourimage.fset</code></li>
+              <li><code>yourimage.iset</code></li>
+              <li><code>yourimage.fset3</code></li>
+            </ul>
+          </li>
+          <li><strong>Upload these 3 files</strong> to your web server (same folder)</li>
+          <li><strong>Note the URL path</strong> (without file extension)<br>
+            Example: If files are at <code>https://mysite.com/markers/myimage.fset</code><br>
+            Your marker URL is: <code>https://mysite.com/markers/myimage</code>
+          </li>
         </ol>
       </div>
 
-      <div style="margin-top: 30px;">
-        <button class="btn btn-success" onclick="downloadQR()">📥 Download QR Code</button>
-        <button class="btn btn-warning" onclick="resetApp()">🔄 Create Another</button>
+      <div style="margin-top: 20px;">
+        <label style="display: block; margin-bottom: 10px; font-weight: bold; color: #333;">
+          Enter your NFT Marker URL (without extension):
+        </label>
+        <input 
+          type="text" 
+          id="markerURL" 
+          placeholder="https://yoursite.com/path-to-markers/yourimage"
+          style="width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 10px; font-size: 1em;"
+        >
+        <p style="color: #666; font-size: 0.9em; margin-top: 10px;">
+          ℹ️ Don't include .fset, .iset, or .fset3 - just the base path
+        </p>
       </div>
+    </div>
 
-      <div class="alert alert-info" style="margin-top: 30px;">
-        <strong>⚠️ Important Notes:</strong><br>
-        • This is a demo interface. In production, you'd need:<br>
-        &nbsp;&nbsp;&nbsp;- A server to host image descriptors (NFT markers)<br>
-        &nbsp;&nbsp;&nbsp;- NFT Marker Creator to process the image<br>
-        &nbsp;&nbsp;&nbsp;- AR.js viewer page to display the experience<br>
-        • For schools: Host on your own server or use free hosting like GitHub Pages<br>
-        • No subscription needed - works forever once set up!
+    <!-- Step 4: Generate -->
+    <div class="card">
+      <div class="step-header">
+        <div class="step-number">4</div>
+        <div class="step-title">Generate Your AR Experience</div>
+      </div>
+      
+      <div style="text-align: center; padding: 20px;">
+        <button class="btn btn-success" id="generateBtn" onclick="generateAR()" disabled>
+          🚀 Generate AR Experience
+        </button>
+      </div>
+      
+      <div class="alert alert-info">
+        <strong>📱 What happens next:</strong><br>
+        • System generates QR code<br>
+        • QR code links to AR viewer<br>
+        • Users scan QR → Camera opens → Point at YOUR image → Video plays!
+      </div>
+    </div>
+
+    <!-- Result Section -->
+    <div id="resultSection" class="result-section">
+      <div class="card">
+        <h2 style="color: #667eea; text-align: center; margin-bottom: 30px;">
+          🎉 Your Stories AR Experience is Ready!
+        </h2>
+
+        <div class="preview-grid">
+          <div class="preview-item">
+            <h3>📸 Target Image</h3>
+            <p style="color: #666; margin-bottom: 15px;">Users point camera at this</p>
+            <img id="finalImage" style="max-height: 250px;">
+          </div>
+          <div class="preview-item">
+            <h3>🎥 AR Video</h3>
+            <p style="color: #666; margin-bottom: 15px;">Plays on the image</p>
+            <video id="finalVideo" controls style="max-height: 250px;"></video>
+          </div>
+        </div>
+
+        <div class="qr-container">
+          <h3 style="margin-bottom: 20px; color: #667eea;">📱 Scan This QR Code</h3>
+          <div id="qrcode"></div>
+          <p style="margin-top: 20px; color: #666; font-size: 0.9em;">
+            Scan with smartphone camera to launch AR experience
+          </p>
+        </div>
+
+        <div style="background: #e3f2fd; padding: 20px; border-radius: 15px; margin: 20px 0;">
+          <strong style="color: #667eea; font-size: 1.2em;">🔗 AR Experience URL:</strong><br>
+          <a id="arLink" href="#" target="_blank" style="color: #2196f3; word-break: break-all; font-family: 'Courier New', monospace;">
+          </a>
+        </div>
+
+        <div class="instructions-list">
+          <h3>📋 How to Use Your Stories AR Experience:</h3>
+          <ol>
+            <li><strong>Print the target image</strong> (your uploaded image from Step 1)</li>
+            <li><strong>Share the QR code</strong> with your users</li>
+            <li><strong>Users scan QR code</strong> with their smartphone</li>
+            <li><strong>Camera opens automatically</strong></li>
+            <li><strong>Point camera at printed image</strong></li>
+            <li><strong>Video appears and plays</strong> directly on your image! 🎬✨</li>
+          </ol>
+        </div>
+
+        <div class="alert alert-success">
+          <strong>✅ Success Tips:</strong><br>
+          • Print image on white paper, good quality<br>
+          • Use in well-lit environment<br>
+          • Hold phone 30-50cm from image<br>
+          • Keep entire image visible to camera<br>
+          • Image should be flat (not curved or folded)
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+          <button class="btn btn-success" onclick="downloadQR()">📥 Download QR Code</button>
+          <button class="btn" onclick="copyLink()">📋 Copy Link</button>
+          <button class="btn" onclick="resetForm()">🔄 Create Another</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Important Technical Note -->
+    <div class="card">
+      <h3 style="color: #667eea; margin-bottom: 15px;">⚙️ Technical Requirements</h3>
+      <div class="alert alert-warning">
+        <strong>🚨 CRITICAL: Server Setup Required</strong><br><br>
+        
+        For this to work, you need to host:<br><br>
+        
+        <strong>1. NFT Marker Files (.fset, .iset, .fset3)</strong><br>
+        &nbsp;&nbsp;&nbsp;→ Upload to your web server<br>
+        &nbsp;&nbsp;&nbsp;→ Note the URL path<br><br>
+        
+        <strong>2. Video File (.mp4)</strong><br>
+        &nbsp;&nbsp;&nbsp;→ Upload to your server or use video hosting<br>
+        &nbsp;&nbsp;&nbsp;→ Needs to be publicly accessible<br><br>
+        
+        <strong>3. AR Viewer Page (HTML)</strong><br>
+        &nbsp;&nbsp;&nbsp;→ Use <code>ar-viewer-custom-image.html</code> (see below)<br>
+        &nbsp;&nbsp;&nbsp;→ Upload to your web server<br><br>
+        
+        <strong>Free Hosting Options:</strong><br>
+        • GitHub Pages (recommended for beginners)<br>
+        • Netlify<br>
+        • Vercel<br>
+        • Firebase Hosting
       </div>
     </div>
   </div>
@@ -405,95 +490,89 @@
   <script>
     let uploadedImage = null;
     let uploadedVideo = null;
-    let qrcodeInstance = null;
+    let markerURL = '';
 
-    // Image Upload Handler
+    // Image upload
     document.getElementById('imageInput').addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (file) {
         const reader = new FileReader();
         reader.onload = function(event) {
           uploadedImage = event.target.result;
-          const preview = document.getElementById('imagePreview');
-          preview.src = uploadedImage;
-          preview.style.display = 'block';
-          document.getElementById('imageZone').classList.add('active');
-          checkReadyToGenerate();
+          document.getElementById('imagePreview').src = uploadedImage;
+          document.getElementById('imagePreview').style.display = 'block';
+          document.getElementById('imageArea').classList.add('active');
+          checkReady();
         };
         reader.readAsDataURL(file);
       }
     });
 
-    // Video Upload Handler
+    // Video upload
     document.getElementById('videoInput').addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (file) {
         const reader = new FileReader();
         reader.onload = function(event) {
           uploadedVideo = event.target.result;
-          const preview = document.getElementById('videoPreview');
-          preview.src = uploadedVideo;
-          preview.style.display = 'block';
-          document.getElementById('videoZone').classList.add('active');
-          checkReadyToGenerate();
+          document.getElementById('videoPreview').src = uploadedVideo;
+          document.getElementById('videoPreview').style.display = 'block';
+          document.getElementById('videoArea').classList.add('active');
+          checkReady();
         };
         reader.readAsDataURL(file);
       }
     });
 
-    // Check if ready to generate
-    function checkReadyToGenerate() {
-      if (uploadedImage && uploadedVideo) {
-        document.getElementById('generateBtn').disabled = false;
+    // Marker URL input
+    document.getElementById('markerURL').addEventListener('input', function(e) {
+      markerURL = e.target.value.trim();
+      checkReady();
+    });
+
+    function checkReady() {
+      const btn = document.getElementById('generateBtn');
+      if (uploadedImage && uploadedVideo && markerURL) {
+        btn.disabled = false;
+      } else {
+        btn.disabled = true;
       }
     }
 
-    // Generate AR Experience
     function generateAR() {
-      // Show loading
-      document.getElementById('loading').classList.add('show');
+      // Show result
+      document.getElementById('resultSection').classList.add('show');
       
-      // Simulate processing time
-      setTimeout(() => {
-        document.getElementById('loading').classList.remove('show');
-        
-        // Show result section
-        document.getElementById('resultSection').classList.add('show');
-        
-        // Update previews
-        document.getElementById('finalImagePreview').src = uploadedImage;
-        document.getElementById('finalVideoPreview').src = uploadedVideo;
-        
-        // Generate unique ID for this AR experience
-        const experienceId = 'ar_' + Date.now();
-        
-        // HARDCODED FIX: Use your exact GitHub Pages URL
-        const arURL = `https://websinker.github.io/AR_PICtoVID_Blender/ar-viewer.html?id=${experienceId}`;
-        
-        console.log('Generated AR URL:', arURL); // Debug log
-        
-        // Generate QR Code
-        document.getElementById('qrcode').innerHTML = '';
-        qrcodeInstance = new QRCode(document.getElementById('qrcode'), {
-          text: arURL,
-          width: 256,
-          height: 256,
-          colorDark: '#000000',
-          colorLight: '#ffffff',
-          correctLevel: QRCode.CorrectLevel.H
-        });
-        
-        // Update link
-        const linkElement = document.getElementById('arLink');
-        linkElement.href = arURL;
-        linkElement.textContent = arURL;
-        
-        // Scroll to result
-        document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 2000);
+      // Update previews
+      document.getElementById('finalImage').src = uploadedImage;
+      document.getElementById('finalVideo').src = uploadedVideo;
+      
+      // In real implementation, you'd upload files and get URLs
+      // For demo, using placeholder
+      const videoURL = 'https://yourserver.com/videos/your-video.mp4';
+      
+      // Generate AR viewer URL
+      const arURL = `https://yoursite.com/ar-viewer-custom-image.html?marker=${encodeURIComponent(markerURL)}&video=${encodeURIComponent(videoURL)}`;
+      
+      // Update link
+      document.getElementById('arLink').href = arURL;
+      document.getElementById('arLink').textContent = arURL;
+      
+      // Generate QR Code
+      document.getElementById('qrcode').innerHTML = '';
+      new QRCode(document.getElementById('qrcode'), {
+        text: arURL,
+        width: 256,
+        height: 256,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+      
+      // Scroll to result
+      document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
     }
 
-    // Download QR Code
     function downloadQR() {
       const canvas = document.querySelector('#qrcode canvas');
       if (canvas) {
@@ -504,14 +583,22 @@
       }
     }
 
-    // Reset App
-    function resetApp() {
+    function copyLink() {
+      const link = document.getElementById('arLink').textContent;
+      navigator.clipboard.writeText(link).then(() => {
+        alert('✅ Link copied to clipboard!');
+      });
+    }
+
+    function resetForm() {
       uploadedImage = null;
       uploadedVideo = null;
+      markerURL = '';
       document.getElementById('imagePreview').style.display = 'none';
       document.getElementById('videoPreview').style.display = 'none';
-      document.getElementById('imageZone').classList.remove('active');
-      document.getElementById('videoZone').classList.remove('active');
+      document.getElementById('imageArea').classList.remove('active');
+      document.getElementById('videoArea').classList.remove('active');
+      document.getElementById('markerURL').value = '';
       document.getElementById('generateBtn').disabled = true;
       document.getElementById('resultSection').classList.remove('show');
       document.getElementById('imageInput').value = '';
