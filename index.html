@@ -467,11 +467,8 @@
         // Generate unique ID for this AR experience
         const experienceId = 'ar_' + Date.now();
         
-        // Get the correct base URL including the repository path
-        const currentPath = window.location.pathname;
-        const basePath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
-        const baseURL = window.location.origin + basePath;
-        const arURL = `${baseURL}ar-viewer.html?id=${experienceId}`;
+        // HARDCODED FIX: Use your exact GitHub Pages URL
+        const arURL = `https://websinker.github.io/AR_PICtoVID_Blender/ar-viewer.html?id=${experienceId}`;
         
         console.log('Generated AR URL:', arURL); // Debug log
         
