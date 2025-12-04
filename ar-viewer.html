@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>AR Debug Mode - See What's Happening</title>
+  <title>AR Test - Simple Version</title>
   
+  <!-- AR.js Core Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/aframe@1.3.0/dist/aframe-master.min.js"></script>
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
   
@@ -12,28 +13,39 @@
     body {
       margin: 0;
       overflow: hidden;
-      font-family: Arial, sans-serif;
     }
     
-    #debugPanel {
+    #info {
       position: fixed;
-      top: 10px;
-      left: 10px;
-      background: rgba(0, 0, 0, 0.9);
-      color: #00ff00;
-      padding: 15px;
-      border-radius: 10px;
-      font-family: 'Courier New', monospace;
-      font-size: 12px;
-      z-index: 10000;
-      max-width: calc(100% - 20px);
-      line-height: 1.6;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(76, 175, 80, 0.9);
+      color: white;
+      padding: 20px 30px;
+      border-radius: 25px;
+      font-family: Arial, sans-serif;
+      font-size: 18px;
+      font-weight: bold;
+      z-index: 1000;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
     
-    .status-good { color: #00ff00; }
-    .status-bad { color: #ff0000; }
-    .status-warn { color: #ffaa00; }
-    
+    #status {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 15px 25px;
+      border-radius: 20px;
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+      z-index: 999;
+    }
+
     #startBtn {
       position: fixed;
       top: 50%;
@@ -42,68 +54,39 @@
       background: #4caf50;
       color: white;
       border: none;
-      padding: 30px 60px;
-      font-size: 28px;
-      border-radius: 40px;
+      padding: 25px 50px;
+      font-size: 24px;
+      border-radius: 35px;
       cursor: pointer;
-      z-index: 10001;
+      z-index: 10000;
       font-weight: bold;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
     }
-
-    #markerImage {
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
-      width: 150px;
-      height: 150px;
-      background: white;
-      border: 3px solid #4caf50;
-      border-radius: 10px;
-      z-index: 9999;
-      padding: 5px;
-    }
-
-    #markerImage img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-
-    .blink {
-      animation: blink 1s infinite;
-    }
-
-    @keyframes blink {
-      0%, 50%, 100% { opacity: 1; }
-      25%, 75% { opacity: 0.3; }
+    
+    #startBtn:active {
+      transform: translate(-50%, -50%) scale(0.95);
     }
   </style>
 </head>
 <body>
 
   <!-- Start Button -->
-  <button id="startBtn" onclick="startAR()">🚀 START DEBUG MODE</button>
+  <button id="startBtn" onclick="startAR()">🚀 START AR</button>
 
-  <!-- Debug Panel -->
-  <div id="debugPanel">
-    <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">🔍 AR DEBUG MODE</div>
-    <div id="log">Initializing...</div>
-  </div>
+  <!-- Info Message -->
+  <div id="info">Point at HIRO marker</div>
 
-  <!-- Show HIRO Marker Reference -->
-  <div id="markerImage" style="display: none;">
-    <img src="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png" alt="HIRO Marker">
-    <div style="text-align: center; font-size: 10px; margin-top: 5px;">Point camera here ↑</div>
-  </div>
+  <!-- Status -->
+  <div id="status">Ready to scan...</div>
 
   <!-- AR Scene -->
   <a-scene
     embedded
-    arjs="sourceType: webcam; debugUIEnabled: true; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+    arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
     vr-mode-ui="enabled: false"
     loading-screen="enabled: false">
 
+    <!-- Assets MUST be inside a-scene -->
     <a-assets>
       <video
         id="vid"
@@ -112,27 +95,16 @@
         playsinline
         webkit-playsinline
         style="display: none;">
-        <!-- Using a reliable video source -->
         <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
       </video>
     </a-assets>
 
-    <a-marker id="marker" preset="hiro" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="2">
+    <!-- HIRO Marker -->
+    <a-marker id="marker" preset="hiro" smooth="true">
       
-      <!-- Bright border to show detection -->
-      <a-box 
-        position="0 0 0" 
-        rotation="0 0 0" 
-        width="2.2" 
-        height="0.05" 
-        depth="2.2" 
-        color="#00ff00"
-        opacity="0.8">
-      </a-box>
-      
-      <!-- White background -->
+      <!-- White Background -->
       <a-plane
-        position="0 0.01 0"
+        position="0 0 0"
         rotation="-90 0 0"
         width="2"
         height="2"
@@ -141,24 +113,16 @@
       
       <!-- Video -->
       <a-video
-        id="videoPlane"
         src="#vid"
         width="1.8"
         height="1.8"
-        position="0 0.02 0"
+        position="0 0 0.01"
         rotation="-90 0 0">
       </a-video>
       
-      <!-- Spinning cube to show tracking is active -->
-      <a-box 
-        position="0 0.5 0" 
-        rotation="0 45 0" 
-        color="#ff0000" 
-        animation="property: rotation; to: 0 405 0; loop: true; dur: 3000">
-      </a-box>
-      
     </a-marker>
 
+    <!-- Camera -->
     <a-entity camera></a-entity>
     
   </a-scene>
@@ -166,170 +130,76 @@
   <script>
     const video = document.getElementById('vid');
     const marker = document.getElementById('marker');
-    const debugPanel = document.getElementById('log');
+    const status = document.getElementById('status');
+    const info = document.getElementById('info');
     let started = false;
-    let markerDetected = false;
-    let videoLoaded = false;
-    let cameraActive = false;
-
-    // Debug logging function
-    function log(message, type = 'info') {
-      const timestamp = new Date().toLocaleTimeString();
-      let className = '';
-      let icon = '📝';
-      
-      if (type === 'success') {
-        className = 'status-good';
-        icon = '✅';
-      } else if (type === 'error') {
-        className = 'status-bad';
-        icon = '❌';
-      } else if (type === 'warning') {
-        className = 'status-warn';
-        icon = '⚠️';
-      }
-      
-      const logEntry = `<div class="${className}">[${timestamp}] ${icon} ${message}</div>`;
-      debugPanel.innerHTML += logEntry;
-      console.log(`[${timestamp}] ${message}`);
-      
-      // Auto-scroll
-      debugPanel.scrollTop = debugPanel.scrollHeight;
-    }
 
     function startAR() {
+      console.log('Starting AR...');
       document.getElementById('startBtn').style.display = 'none';
-      document.getElementById('markerImage').style.display = 'block';
-      
-      log('🚀 Starting AR Debug Mode...', 'info');
-      log('📸 Requesting camera access...', 'info');
       
       // Initialize video
       video.muted = true;
-      
-      // Test video loading
-      video.addEventListener('loadeddata', function() {
-        videoLoaded = true;
-        log('✅ Video loaded successfully', 'success');
-        log(`📹 Video: ${video.videoWidth}x${video.videoHeight}, Duration: ${Math.round(video.duration)}s`, 'info');
-      });
-      
-      video.addEventListener('error', function(e) {
-        log(`❌ Video loading error: ${e.message || 'Unknown error'}`, 'error');
-      });
-      
       video.load();
       
-      // Try to play once
+      // Try to play once to initialize
       video.play().then(() => {
         video.pause();
         video.currentTime = 0;
-        log('✅ Video initialized (play test successful)', 'success');
+        console.log('Video ready');
         started = true;
+        status.textContent = 'Searching for marker...';
       }).catch(e => {
-        log(`⚠️ Video play test failed: ${e.message}`, 'warning');
-        log('ℹ️ This is normal - video will play when marker detected', 'info');
+        console.log('Video init failed:', e);
         started = true;
       });
-      
-      // Check camera
-      checkCamera();
     }
 
-    function checkCamera() {
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-        .then(function(stream) {
-          cameraActive = true;
-          log('✅ Camera access granted', 'success');
-          log(`📱 Camera: ${stream.getVideoTracks()[0].label}`, 'info');
-          
-          const settings = stream.getVideoTracks()[0].getSettings();
-          log(`📐 Resolution: ${settings.width}x${settings.height}`, 'info');
-          
-          stream.getTracks().forEach(track => track.stop());
-          
-          log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
-          log('🎯 NOW POINT CAMERA AT HIRO MARKER', 'warning');
-          log('   (shown in bottom-right corner)', 'info');
-          log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
-          
-        })
-        .catch(function(error) {
-          log(`❌ Camera access DENIED: ${error.message}`, 'error');
-          log('⚠️ Enable camera in browser settings!', 'error');
-        });
-    }
-
-    // Marker events
+    // Marker found
     marker.addEventListener('markerFound', function() {
-      markerDetected = true;
-      log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'success');
-      log('🎉 MARKER DETECTED!', 'success');
-      log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'success');
-      log('📹 Starting video playback...', 'info');
-      
-      // Make marker reference blink
-      document.getElementById('markerImage').classList.add('blink');
+      console.log('✅ Marker found!');
+      status.textContent = '✅ Marker detected! Playing...';
+      status.style.background = 'rgba(76, 175, 80, 0.9)';
+      info.style.display = 'none';
       
       // Play video
       video.muted = false;
-      video.play()
-        .then(() => {
-          log('✅ Video playing WITH SOUND', 'success');
-          log('🔊 If no sound, check phone volume!', 'warning');
-        })
-        .catch(e => {
-          log('⚠️ Unmuted play failed, trying muted...', 'warning');
-          video.muted = true;
-          video.play().then(() => {
-            log('✅ Video playing (MUTED)', 'success');
-            log('🔇 Browser blocked audio autoplay', 'warning');
-          });
+      video.play().catch(e => {
+        console.log('Unmuted play failed, trying muted');
+        video.muted = true;
+        video.play().then(() => {
+          console.log('Playing muted');
+          setTimeout(() => {
+            video.muted = false;
+          }, 1000);
         });
+      });
 
-      // Vibrate
+      // Vibrate if supported
       if (navigator.vibrate) {
-        navigator.vibrate(200);
-        log('📳 Vibration feedback sent', 'info');
+        navigator.vibrate(100);
       }
     });
 
+    // Marker lost
     marker.addEventListener('markerLost', function() {
-      markerDetected = false;
-      log('❌ Marker lost - searching...', 'warning');
-      document.getElementById('markerImage').classList.remove('blink');
+      console.log('❌ Marker lost');
+      status.textContent = '❌ Marker lost - searching...';
+      status.style.background = 'rgba(0, 0, 0, 0.8)';
+      info.style.display = 'block';
       
+      // Pause video
       if (!video.paused) {
         video.pause();
-        log('⏸️ Video paused', 'info');
       }
     });
 
-    // Scene loaded
-    const scene = document.querySelector('a-scene');
-    scene.addEventListener('loaded', function() {
-      log('✅ AR.js scene loaded', 'success');
-      log('✅ All systems ready', 'success');
-    });
-
-    // Periodic status check
-    setInterval(function() {
-      if (started && !markerDetected) {
-        log('🔍 Scanning for marker... (move phone around)', 'info');
+    // Show instructions on how to get HIRO marker
+    setTimeout(() => {
+      if (!started) {
+        console.log('Get HIRO marker at: https://github.com/AR-js-org/AR.js/blob/master/data/images/hiro.png');
       }
-    }, 5000);
-
-    // Initial help message
-    setTimeout(function() {
-      log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
-      log('📋 SETUP CHECKLIST:', 'info');
-      log('1️⃣ Tap START DEBUG MODE button', 'info');
-      log('2️⃣ Allow camera access', 'info');
-      log('3️⃣ Get HIRO marker (shown bottom-right)', 'info');
-      log('4️⃣ Point camera at marker', 'info');
-      log('5️⃣ Keep marker flat & fully visible', 'info');
-      log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
-    }, 500);
+    }, 3000);
   </script>
 
 </body>
