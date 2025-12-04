@@ -480,55 +480,45 @@
     <!-- Using HIRO marker for demo -->
     <a-marker preset="hiro" id="markerDetected" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
       
-      <!-- Video Plane - Optimized for Mobile -->
+      <!-- Video Plane - Fixed directly on marker surface -->
       <a-video
         id="arVideo"
         src="#demoVideo"
-        width="1.8"
-        height="1.35"
-        position="0 0.7 0"
+        width="1.6"
+        height="1.6"
+        position="0 0 0.01"
         rotation="-90 0 0"
-        play="false">
+        play="false"
+        opacity="1">
       </a-video>
       
-      <!-- Frame around video -->
+      <!-- White border frame around video -->
       <a-plane
-        position="0 0.7 -0.02"
+        position="0 0 0"
         rotation="-90 0 0"
-        width="2"
-        height="1.55"
+        width="1.7"
+        height="1.7"
         color="#ffffff"
-        opacity="0.95"
-        shadow>
+        opacity="1">
       </a-plane>
       
-      <!-- Play Icon (shows when paused) -->
+      <!-- Play Icon overlay (shows when video paused) -->
       <a-circle
         id="playIcon"
-        position="0 0.7 0.01"
+        position="0 0 0.02"
         rotation="-90 0 0"
-        radius="0.3"
+        radius="0.25"
         color="#4caf50"
         opacity="0.9">
+        <a-cone
+          position="0.05 0 0.01"
+          rotation="0 0 90"
+          radius-bottom="0.15"
+          radius-top="0"
+          height="0.2"
+          color="#ffffff">
+        </a-cone>
       </a-circle>
-      
-      <!-- Text label with animation -->
-      <a-text
-        value="AR Video!"
-        position="0 1.9 0"
-        scale="1.2 1.2 1.2"
-        align="center"
-        color="#4caf50"
-        shader="msdf"
-        font="https://raw.githubusercontent.com/etiennepinchon/aframe-fonts/master/fonts/berkshireswash/BerkshireSwash-Regular.json"
-        animation="property: position; to: 0 2.1 0; dir: alternate; loop: true; dur: 1500; easing: easeInOutSine">
-      </a-text>
-      
-      <!-- Decorative corners -->
-      <a-box position="-1.1 0.7 0.02" rotation="-90 0 0" width="0.1" height="0.1" depth="0.05" color="#667eea"></a-box>
-      <a-box position="1.1 0.7 0.02" rotation="-90 0 0" width="0.1" height="0.1" depth="0.05" color="#667eea"></a-box>
-      <a-box position="-1.1 -0.1 0.02" rotation="-90 0 0" width="0.1" height="0.1" depth="0.05" color="#764ba2"></a-box>
-      <a-box position="1.1 -0.1 0.02" rotation="-90 0 0" width="0.1" height="0.1" depth="0.05" color="#764ba2"></a-box>
       
     </a-marker>
 
