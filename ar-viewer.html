@@ -480,36 +480,37 @@
     <!-- Using HIRO marker for demo -->
     <a-marker preset="hiro" id="markerDetected" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
       
+      <!-- White border frame around video (BEHIND the video) -->
+      <a-plane
+        position="0 0 -0.01"
+        rotation="-90 0 0"
+        width="1.8"
+        height="1.8"
+        color="#ffffff"
+        opacity="1">
+      </a-plane>
+      
       <!-- Video Plane - Fixed directly on marker surface -->
       <a-video
         id="arVideo"
         src="#demoVideo"
         width="1.6"
         height="1.6"
-        position="0 0 0.01"
+        position="0 0 0"
         rotation="-90 0 0"
         play="false"
         opacity="1">
       </a-video>
       
-      <!-- White border frame around video -->
-      <a-plane
-        position="0 0 0"
-        rotation="-90 0 0"
-        width="1.7"
-        height="1.7"
-        color="#ffffff"
-        opacity="1">
-      </a-plane>
-      
       <!-- Play Icon overlay (shows when video paused) -->
       <a-circle
         id="playIcon"
-        position="0 0 0.02"
+        position="0 0 0.01"
         rotation="-90 0 0"
         radius="0.25"
         color="#4caf50"
-        opacity="0.9">
+        opacity="0.9"
+        visible="false">
         <a-cone
           position="0.05 0 0.01"
           rotation="0 0 90"
