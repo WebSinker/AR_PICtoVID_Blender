@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AR Experience Viewer</title>
+  
+  <!-- AR.js with Image Tracking (NFT) -->
+  <script src="https://cdn.jsdelivr.net/gh/aframevr/aframe@1c2407b26c61958baa93967b5412487cd94b290b/dist/aframe-master.min.js"></script>
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
+  
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Arial', sans-serif;
+    }
+
+    .arjs-loader {
+      height: 100%;
+      width: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .arjs-loader div {
+      text-align: center;
+      color: white;
+      padding: 20px;
+    }
+
+    .arjs-loader h2 {
+      font-size: 2em;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .arjs-loader p {
+      font-size: 1.2em;
+      margin: 10px 0;
+      opacity: 0.9;
+    }
+
+    .spinner {
+      border: 5px solid rgba(255,255,255,0.3);
+      border-top: 5px solid white;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin: 30px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .instructions {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(76, 175, 80, 0.95);
+      color: white;
+      padding: 15px 25px;
+      border-radius: 25px;
+      z-index: 1000;
+      text-align: center;
+      font-weight: bold;
+      font-size: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      max-width: 90%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: translateX(-50%) scale(1); }
+      50% { transform: translateX(-50%) scale(1.05); }
+    }
+
+    .instructions.hidden {
+      display: none;
+    }
+
+    .found-message {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(76, 175, 80, 0.95);
+      color: white;
+      padding: 20px 30px;
+      border-radius: 20px;
+      z-index: 999;
+      font-size: 18px;
+      font-weight: bold;
+      display: none;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      animation: slideUp 0.5s ease;
+    }
+
+    .found-message.show {
+      display: block;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateX(-50%) translateY(100px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .error-message {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(244, 67, 54, 0.95);
+      color: white;
+      padding: 30px;
+      border-radius: 20px;
+      z-index: 10000;
+      text-align: center;
+      display: none;
+      max-width: 80%;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .help-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(33, 150, 243, 0.9);
+      color: white;
+      border: none;
+      padding: 15px;
+      border-radius: 50%;
+      font-size: 24px;
+      cursor: pointer;
+      z-index: 998;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .help-panel {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      border-radius: 15px;
+      z-index: 997;
+      max-width: 300px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      display: none;
+    }
+
+    .help-panel.show {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .help-panel h3 {
+      color: #667eea;
+      margin-top: 0;
+      margin-bottom: 15px;
+    }
+
+    .help-panel ul {
+      margin-left: 20px;
+      line-height: 1.8;
+      color: #333;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div class="arjs-loader">
+    <div>
+      <h2>🎬 Loading AR Experience...</h2>
+      <div class="spinner"></div>
+      <p>📸 Please allow camera access</p>
+      <p>🔍 Preparing image tracker...</p>
+    </div>
+  </div>
+
+  <!-- Instructions -->
+  <div class="instructions" id="instructions">
+    📸 Point your camera at the target image!
+  </div>
+
+  <!-- Found Message -->
+  <div class="found-message" id="foundMessage">
+    ✨ Image detected! Enjoy your video! 🎬
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-message" id="errorMessage">
+    <h3>⚠️ Camera Access Required</h3>
+    <p>Please allow camera access to use this AR experience.</p>
+    <button onclick="location.reload()" style="background: white; color: #f44336; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px;">
+      🔄 Retry
+    </button>
+  </div>
+
+  <!-- Help Button -->
+  <button class="help-button" onclick="toggleHelp()">❓</button>
+  
+  <!-- Help Panel -->
+  <div class="help-panel" id="helpPanel">
+    <h3>💡 Troubleshooting</h3>
+    <ul>
+      <li>Ensure good lighting</li>
+      <li>Hold device steady</li>
+      <li>Keep image flat and visible</li>
+      <li>Move closer if not detecting</li>
+      <li>Avoid glare on the image</li>
+    </ul>
+  </div>
+
+  <!-- AR Scene -->
+  <a-scene
+    vr-mode-ui="enabled: false;"
+    renderer="logarithmicDepthBuffer: true; precision: medium;"
+    embedded
+    arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;">
+    
+    <!--
+      IMPORTANT: In production, you would replace this with actual NFT markers
+      generated from the user's uploaded image using NFT Marker Creator
+      
+      For this demo, we're using a marker-based approach (HIRO marker)
+      which can be printed and tested immediately.
+      
+      To use image tracking, you need to:
+      1. Process user's uploaded image through NFT Marker Creator
+      2. Generate .fset, .fset3, .iset files
+      3. Host them on your server
+      4. Replace the marker below with: <a-nft type="nft" url="path/to/descriptors">
+    -->
+    
+    <!-- Using HIRO marker for demo (replace with NFT in production) -->
+    <a-marker preset="hiro" id="markerDetected" emitevents="true">
+      <!-- Video element that plays when marker is detected -->
+      <a-video
+        id="arVideo"
+        src="#demoVideo"
+        width="2"
+        height="1.5"
+        position="0 0.5 0"
+        rotation="-90 0 0"
+        play="false">
+      </a-video>
+      
+      <!-- Frame around video for better visibility -->
+      <a-plane
+        position="0 0.5 -0.01"
+        rotation="-90 0 0"
+        width="2.2"
+        height="1.7"
+        color="#ffffff"
+        opacity="0.9">
+      </a-plane>
+      
+      <!-- Text label -->
+      <a-text
+        value="AR Video Playing!"
+        position="0 1.8 0"
+        scale="1.5 1.5 1.5"
+        align="center"
+        color="#4caf50"
+        animation="property: position; to: 0 2 0; dir: alternate; loop: true; dur: 2000">
+      </a-text>
+    </a-marker>
+
+    <!-- Camera -->
+    <a-entity camera></a-entity>
+  </a-scene>
+
+  <!-- Assets (Demo Video - In production, this would be user's uploaded video) -->
+  <a-assets>
+    <video
+      id="demoVideo"
+      crossorigin="anonymous"
+      loop
+      preload="auto"
+      style="display: none;">
+      <!-- Demo video URL - Replace with actual uploaded video -->
+      <source src="https://cdn.aframe.io/examples/assets/videos/bunny.mp4" type="video/mp4">
+    </video>
+  </a-assets>
+
+  <script>
+    let helpVisible = false;
+    let videoPlaying = false;
+
+    // Toggle help panel
+    function toggleHelp() {
+      helpVisible = !helpVisible;
+      const panel = document.getElementById('helpPanel');
+      if (helpVisible) {
+        panel.classList.add('show');
+      } else {
+        panel.classList.remove('show');
+      }
+    }
+
+    // Wait for AR.js to load
+    window.addEventListener('load', function() {
+      // Hide loader when AR is ready
+      const loader = document.querySelector('.arjs-loader');
+      setTimeout(() => {
+        loader.style.display = 'none';
+      }, 3000);
+    });
+
+    // Marker detection events
+    const marker = document.querySelector('#markerDetected');
+    const video = document.querySelector('#demoVideo');
+    const foundMessage = document.getElementById('foundMessage');
+    const instructions = document.getElementById('instructions');
+
+    marker.addEventListener('markerFound', function() {
+      console.log('Marker detected!');
+      
+      // Hide instructions
+      instructions.classList.add('hidden');
+      
+      // Show found message
+      foundMessage.classList.add('show');
+      
+      // Play video
+      if (video && !videoPlaying) {
+        video.play();
+        videoPlaying = true;
+      }
+      
+      // Hide found message after 3 seconds
+      setTimeout(() => {
+        foundMessage.classList.remove('show');
+      }, 3000);
+    });
+
+    marker.addEventListener('markerLost', function() {
+      console.log('Marker lost');
+      
+      // Show instructions again
+      instructions.classList.remove('hidden');
+      
+      // Pause video
+      if (video) {
+        video.pause();
+        videoPlaying = false;
+      }
+    });
+
+    // Handle camera permission errors
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(function(stream) {
+        console.log('Camera access granted');
+        stream.getTracks().forEach(track => track.stop());
+      })
+      .catch(function(error) {
+        console.error('Camera access denied:', error);
+        document.querySelector('.arjs-loader').style.display = 'none';
+        document.getElementById('errorMessage').classList.add('show');
+      });
+
+    // Auto-hide instructions after 8 seconds if marker not found
+    setTimeout(() => {
+      if (!instructions.classList.contains('hidden')) {
+        instructions.style.opacity = '0.7';
+      }
+    }, 8000);
+
+    // In production, you would fetch the actual video URL from the server
+    // based on the experience ID in the URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const experienceId = urlParams.get('id');
+    
+    if (experienceId) {
+      console.log('Loading AR experience:', experienceId);
+      // Fetch experience data from server
+      // fetchExperienceData(experienceId);
+    }
+  </script>
+</body>
+</html>
