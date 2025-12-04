@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>AR Viewer - WebSinker AR Experience</title>
+  <title>AR Viewer - Debug Mode</title>
   
   <!-- AR.js for Natural Feature Tracking (NFT) -->
   <script src="https://cdn.jsdelivr.net/npm/aframe@1.3.0/dist/aframe-master.min.js"></script>
@@ -138,7 +138,7 @@
 
     .marker-found {
       position: fixed;
-      bottom: 30px;
+      bottom: 100px;
       left: 50%;
       transform: translateX(-50%);
       background: rgba(76, 175, 80, 0.95);
@@ -180,6 +180,8 @@
       z-index: 10001;
       text-align: center;
       max-width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
       box-shadow: 0 8px 30px rgba(0,0,0,0.5);
     }
 
@@ -191,6 +193,8 @@
     .error p {
       margin: 10px 0;
       line-height: 1.6;
+      font-size: 0.95em;
+      text-align: left;
     }
 
     .error button {
@@ -209,19 +213,37 @@
       display: none !important;
     }
 
-    .debug-info {
+    /* Debug console - always visible */
+    .debug-console {
       position: fixed;
-      bottom: 10px;
-      left: 10px;
-      background: rgba(0, 0, 0, 0.8);
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.95);
       color: #00ff00;
-      padding: 10px;
-      border-radius: 8px;
+      padding: 15px;
       font-family: 'Courier New', monospace;
-      font-size: 10px;
+      font-size: 11px;
       z-index: 998;
-      max-width: 300px;
-      word-break: break-all;
+      max-height: 200px;
+      overflow-y: auto;
+      border-top: 2px solid #4caf50;
+    }
+
+    .debug-console strong {
+      color: #4caf50;
+    }
+
+    .log-error {
+      color: #ff5555;
+    }
+
+    .log-success {
+      color: #55ff55;
+    }
+
+    .log-warning {
+      color: #ffaa55;
     }
   </style>
 </head>
@@ -244,9 +266,9 @@
 
   <!-- Error Message -->
   <div class="error hidden" id="error">
-    <h3>⚠️ Error</h3>
+    <h3>⚠️ Error Detected</h3>
     <p id="errorMessage"></p>
-    <button onclick="window.location.reload()">🔄 Retry</button>
+    <button onclick="window.location.reload()">🔄 Reload Page</button>
   </div>
 
   <!-- Instructions -->
@@ -257,12 +279,13 @@
 
   <!-- Marker Found Message -->
   <div class="marker-found" id="markerFound">
-    ✅ Marker Detected! Playing video...
+    ✅ Marker Detected!
   </div>
 
-  <!-- Debug Info (optional - can be removed) -->
-  <div class="debug-info hidden" id="debugInfo">
-    <div id="debugText">Debug info...</div>
+  <!-- Debug Console - ALWAYS VISIBLE -->
+  <div class="debug-console" id="debugConsole">
+    <strong>🔍 Debug Console (Real-time logs)</strong><br>
+    <div id="debugLog">Initializing...</div>
   </div>
 
   <!-- AR Scene -->
@@ -294,6 +317,9 @@
   </a-scene>
 
   <script>
+    // Prevent any automatic reloads or resets
+    let preventReset = false;
+    
     // Get parameters from URL
     const urlParams = new URLSearchParams(window.location.search);
     const markerURL = urlParams.get('marker');
@@ -308,83 +334,161 @@
     const error = document.getElementById('error');
     const errorMessage = document.getElementById('errorMessage');
     const loadingStatus = document.getElementById('loadingStatus');
-    const debugInfo = document.getElementById('debugInfo');
-    const debugText = document.getElementById('debugText');
+    const debugConsole = document.getElementById('debugConsole');
+    const debugLog = document.getElementById('debugLog');
 
     let started = false;
     let markerAdded = false;
     let markerVisible = false;
-    let debugMode = urlParams.get('debug') === 'true'; // Add ?debug=true to URL for debug mode
+    let videoReady = false;
 
-    if (debugMode) {
-      debugInfo.classList.remove('hidden');
-    }
-
-    function updateDebug(text) {
-      if (debugMode) {
-        debugText.innerHTML += `<br>${text}`;
-        console.log(text);
-      } else {
-        console.log(text);
+    function log(text, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString();
+      let className = '';
+      let emoji = '📝';
+      
+      if (type === 'success') {
+        className = 'log-success';
+        emoji = '✅';
+      } else if (type === 'error') {
+        className = 'log-error';
+        emoji = '❌';
+      } else if (type === 'warning') {
+        className = 'log-warning';
+        emoji = '⚠️';
       }
+      
+      const msg = `<div class="${className}">${emoji} [${timestamp}] ${text}</div>`;
+      debugLog.innerHTML += msg;
+      debugConsole.scrollTop = debugConsole.scrollHeight;
+      console.log(`[${timestamp}] ${text}`);
     }
+
+    // Catch ALL errors to see what's causing resets
+    window.addEventListener('error', function(e) {
+      log(`WINDOW ERROR: ${e.message} at ${e.filename}:${e.lineno}`, 'error');
+      preventReset = true;
+    });
+
+    window.addEventListener('unhandledrejection', function(e) {
+      log(`UNHANDLED PROMISE REJECTION: ${e.reason}`, 'error');
+      preventReset = true;
+    });
+
+    // Monitor if startOverlay is being shown again
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.target.id === 'startOverlay' && !mutation.target.classList.contains('hidden')) {
+          if (started) {
+            log('⚠️⚠️⚠️ START OVERLAY SHOWN AGAIN - This should NOT happen!', 'error');
+            log('Something is causing the overlay to reappear!', 'error');
+            preventReset = true;
+          }
+        }
+      });
+    });
+
+    observer.observe(startOverlay, { attributes: true, attributeFilter: ['class'] });
 
     // Initialize
     window.addEventListener('load', function() {
-      updateDebug('Page loaded');
-      updateDebug(`Marker: ${markerURL}`);
-      updateDebug(`Video: ${videoURL}`);
+      log('=== PAGE LOADED ===', 'success');
+      log(`Marker URL: ${markerURL || 'MISSING!'}`);
+      log(`Video URL: ${videoURL || 'MISSING!'}`);
 
       // Validate parameters
       if (!markerURL || !videoURL) {
-        showError('Missing required parameters!<br><br>Need both <code>marker</code> and <code>video</code> URLs.<br><br>Please generate a new QR code.');
+        showError('Missing URL parameters!<br><br>Marker: ' + (markerURL || 'NOT PROVIDED') + '<br>Video: ' + (videoURL || 'NOT PROVIDED'));
         return;
       }
 
       // Set video source
       video.src = videoURL;
       loadingStatus.textContent = 'Loading video...';
-      updateDebug('Video source set');
+      log('Video source set to: ' + videoURL);
 
-      // Wait for video to load
-      video.addEventListener('loadeddata', function() {
-        updateDebug('✅ Video loaded successfully');
-        updateDebug(`Video: ${video.videoWidth}x${video.videoHeight}, ${Math.round(video.duration)}s`);
-        loadingStatus.textContent = 'Video loaded! Initializing AR...';
-        
-        // Wait for scene to load
-        if (scene.hasLoaded) {
-          onSceneReady();
-        } else {
-          scene.addEventListener('loaded', onSceneReady);
-        }
-      });
+      // Monitor ALL video events
+      video.addEventListener('loadstart', () => log('Video: loadstart'));
+      video.addEventListener('progress', () => log('Video: progress (downloading)'));
+      video.addEventListener('suspend', () => log('Video: suspend', 'warning'));
+      video.addEventListener('abort', () => log('Video: abort!', 'error'));
+      video.addEventListener('error', handleVideoError);
+      video.addEventListener('emptied', () => log('Video: emptied', 'warning'));
+      video.addEventListener('stalled', () => log('Video: stalled', 'warning'));
+      video.addEventListener('loadedmetadata', () => log('Video: metadata loaded'));
+      video.addEventListener('loadeddata', handleVideoLoaded);
+      video.addEventListener('canplay', () => log('Video: can play'));
+      video.addEventListener('canplaythrough', () => log('Video: can play through'));
+      video.addEventListener('playing', () => log('Video: PLAYING!', 'success'));
+      video.addEventListener('waiting', () => log('Video: waiting (buffering)', 'warning'));
+      video.addEventListener('seeking', () => log('Video: seeking'));
+      video.addEventListener('seeked', () => log('Video: seeked'));
+      video.addEventListener('ended', () => log('Video: ended'));
+      video.addEventListener('pause', () => log('Video: paused'));
 
-      video.addEventListener('error', function(e) {
-        console.error('Video load error:', e);
-        showError(`Failed to load video!<br><br><strong>URL:</strong> ${videoURL}<br><br>Make sure:<br>• Video file exists in your repo<br>• URL is correct<br>• File is accessible`);
-      });
+      // Start loading
+      log('Attempting to load video...');
+      video.load();
     });
 
-    function onSceneReady() {
-      updateDebug('✅ AR scene loaded');
-      loadingStatus.textContent = 'AR ready! Adding marker tracking...';
+    function handleVideoError(e) {
+      const err = video.error;
+      let errorMsg = 'Unknown error';
+      let errorCode = err ? err.code : 'UNKNOWN';
       
-      // Add NFT marker to scene
-      addNFTMarker();
+      if (err) {
+        switch(err.code) {
+          case 1: errorMsg = 'MEDIA_ERR_ABORTED - Video loading aborted'; break;
+          case 2: errorMsg = 'MEDIA_ERR_NETWORK - Network error'; break;
+          case 3: errorMsg = 'MEDIA_ERR_DECODE - Video decode error'; break;
+          case 4: errorMsg = 'MEDIA_ERR_SRC_NOT_SUPPORTED - Video format not supported or file not found'; break;
+        }
+      }
+      
+      log(`VIDEO ERROR (Code ${errorCode}): ${errorMsg}`, 'error');
+      log(`Video URL was: ${videoURL}`, 'error');
+      
+      showError(`Video Load Failed!<br><br><strong>Error:</strong> ${errorMsg}<br><strong>Code:</strong> ${errorCode}<br><br><strong>Video URL:</strong><br>${videoURL}<br><br><strong>Possible causes:</strong><br>• Video file doesn't exist<br>• Wrong file path/name<br>• File not accessible<br>• CORS issue<br>• Wrong video format`);
+    }
+
+    function handleVideoLoaded() {
+      videoReady = true;
+      log(`✅✅ VIDEO LOADED SUCCESSFULLY! ✅✅`, 'success');
+      log(`Video: ${video.videoWidth}x${video.videoHeight}, Duration: ${Math.round(video.duration)}s`, 'success');
+      loadingStatus.textContent = 'Video loaded! Initializing AR...';
+      
+      // Wait for scene
+      if (scene.hasLoaded) {
+        onSceneReady();
+      } else {
+        log('Waiting for AR scene to load...');
+        scene.addEventListener('loaded', onSceneReady);
+      }
+    }
+
+    function onSceneReady() {
+      log('✅ AR SCENE LOADED', 'success');
+      loadingStatus.textContent = 'AR ready! Adding marker...';
+      
+      // Add NFT marker
+      try {
+        addNFTMarker();
+      } catch(e) {
+        log(`ERROR adding marker: ${e.message}`, 'error');
+        showError(`Failed to add marker!<br><br>${e.message}`);
+        return;
+      }
       
       setTimeout(() => {
+        log('Hiding loading screen, showing START button');
         loading.classList.add('hidden');
         startOverlay.classList.remove('hidden');
-        updateDebug('Ready to start');
       }, 1000);
     }
 
     function addNFTMarker() {
-      updateDebug('Adding NFT marker...');
-      updateDebug(`Marker URL: ${markerURL}`);
+      log('Creating NFT marker entity...');
       
-      // Create NFT marker entity
       const nftMarker = document.createElement('a-nft');
       nftMarker.setAttribute('type', 'nft');
       nftMarker.setAttribute('url', markerURL);
@@ -393,7 +497,7 @@
       nftMarker.setAttribute('smoothTolerance', '0.01');
       nftMarker.setAttribute('smoothThreshold', '5');
       
-      // Create video entity
+      log('Creating video entity...');
       const videoEntity = document.createElement('a-video');
       videoEntity.setAttribute('src', '#arVideo');
       videoEntity.setAttribute('width', '1');
@@ -401,138 +505,137 @@
       videoEntity.setAttribute('position', '0 0 0');
       videoEntity.setAttribute('rotation', '-90 0 0');
       
-      // Add video to marker
       nftMarker.appendChild(videoEntity);
-      
-      // Add marker to scene
       scene.appendChild(nftMarker);
       markerAdded = true;
       
-      updateDebug('✅ NFT marker added');
+      log('✅ Marker added to scene', 'success');
       
-      // Set up marker events
+      // Event listeners
       nftMarker.addEventListener('markerFound', onMarkerFound);
       nftMarker.addEventListener('markerLost', onMarkerLost);
       
-      updateDebug('Event listeners attached');
+      log('✅ Event listeners attached', 'success');
     }
 
     function startAR() {
-      updateDebug('User clicked START');
+      log('=============================', 'success');
+      log('USER CLICKED START AR BUTTON', 'success');
+      log('=============================', 'success');
       started = true;
+      preventReset = true; // Prevent any automatic resets from now on
       
       startOverlay.classList.add('hidden');
       instructions.classList.remove('hidden');
       
+      log('Start overlay hidden, instructions shown');
+      log('AR IS NOW ACTIVE - scanning for marker');
+      
       // Initialize video
       video.muted = true;
-      video.load();
-      
-      // Try initial play to initialize
-      video.play().then(() => {
-        video.pause();
-        video.currentTime = 0;
-        updateDebug('✅ Video initialized');
-      }).catch(e => {
-        updateDebug('⚠️ Video init warning: ' + e.message);
-      });
-
-      updateDebug('AR started - waiting for marker...');
+      video.play()
+        .then(() => {
+          log('Video pre-play successful', 'success');
+          video.pause();
+          video.currentTime = 0;
+        })
+        .catch(e => {
+          log(`Video pre-play failed: ${e.message}`, 'warning');
+        });
     }
 
     function onMarkerFound() {
-      updateDebug('🎯 MARKER FOUND!');
+      log('🎯🎯🎯 MARKER FOUND! 🎯🎯🎯', 'success');
       markerVisible = true;
       
       instructions.classList.add('hidden');
       markerFound.classList.add('show');
       
-      setTimeout(() => {
-        markerFound.classList.remove('show');
-      }, 2500);
-      
-      // Play video
+      log('Starting video playback...');
       playVideo();
       
-      // Vibrate if supported
       if (navigator.vibrate) {
         navigator.vibrate(100);
-        updateDebug('Vibration sent');
       }
     }
 
     function onMarkerLost() {
-      updateDebug('❌ Marker lost');
+      log('Marker lost', 'warning');
       markerVisible = false;
       
       instructions.classList.remove('hidden');
+      markerFound.classList.remove('show');
       
-      // Pause video
       if (!video.paused) {
         video.pause();
-        updateDebug('Video paused');
+        log('Video paused');
       }
     }
 
     function playVideo() {
-      updateDebug('▶️ Playing video...');
+      log('▶️ PLAY VIDEO CALLED');
       
+      if (!videoReady) {
+        log('Video not ready!', 'error');
+        return;
+      }
+
+      // Try unmuted first
       video.muted = false;
+      log('Attempting unmuted play...');
       
       video.play()
         .then(() => {
-          updateDebug('✅ Video playing with audio');
+          log('✅ Video playing WITH AUDIO!', 'success');
         })
         .catch(error => {
-          updateDebug('⚠️ Unmuted play failed, trying muted');
+          log(`Unmuted play failed: ${error.message}`, 'warning');
+          log('Trying muted play...');
+          
           video.muted = true;
           video.play()
             .then(() => {
-              updateDebug('✅ Video playing (muted)');
+              log('✅ Video playing (muted)', 'success');
+              log('Browser blocked audio autoplay');
+              
               // Try unmuting after delay
               setTimeout(() => {
                 video.muted = false;
-                updateDebug('Attempting to unmute...');
+                log('Attempted to unmute');
               }, 1000);
             })
             .catch(e => {
-              updateDebug('❌ Video play failed: ' + e.message);
+              log(`❌ MUTED PLAY ALSO FAILED: ${e.message}`, 'error');
             });
         });
     }
 
     function showError(message) {
+      log('SHOWING ERROR TO USER', 'error');
       loading.classList.add('hidden');
-      startOverlay.classList.add('hidden');
+      if (!preventReset) {
+        startOverlay.classList.add('hidden');
+      }
       error.classList.remove('hidden');
       errorMessage.innerHTML = message;
-      updateDebug('ERROR: ' + message);
     }
 
-    // Handle camera permissions
+    // Camera
     navigator.mediaDevices.getUserMedia({ 
       video: { 
-        facingMode: 'environment',
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
+        facingMode: 'environment'
       } 
     })
     .then(function(stream) {
-      updateDebug('✅ Camera access granted');
-      updateDebug(`Camera: ${stream.getVideoTracks()[0].label}`);
+      log('✅ Camera access granted', 'success');
       stream.getTracks().forEach(track => track.stop());
     })
     .catch(function(err) {
-      console.error('❌ Camera access error:', err);
-      showError(`Camera access required!<br><br>Please allow camera access and refresh.<br><br><strong>Error:</strong> ${err.message}`);
+      log(`❌ Camera error: ${err.message}`, 'error');
+      showError(`Camera access required!<br><br>${err.message}`);
     });
 
-    // Log parameters for debugging
-    console.log('=== AR VIEWER INITIALIZED ===');
-    console.log('Marker URL:', markerURL);
-    console.log('Video URL:', videoURL);
-    console.log('Debug mode:', debugMode);
-    console.log('Add ?debug=true to URL to see debug panel');
+    log('All initialization complete');
   </script>
 
 </body>
