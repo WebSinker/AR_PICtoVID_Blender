@@ -467,8 +467,10 @@
         // Generate unique ID for this AR experience
         const experienceId = 'ar_' + Date.now();
         
-        // In production, this would be your actual hosted AR viewer URL
-        const arURL = `${window.location.origin}/ar-viewer.html?id=${experienceId}`;
+        // IMPORTANT: Replace with your actual GitHub Pages URL
+        // Format: https://YOUR-USERNAME.github.io/REPOSITORY-NAME/ar-viewer.html
+        const baseURL = window.location.origin + window.location.pathname.replace('index.html', '');
+        const arURL = `${baseURL}ar-viewer.html?id=${experienceId}`;
         
         // Generate QR Code
         document.getElementById('qrcode').innerHTML = '';
